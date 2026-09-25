@@ -261,10 +261,11 @@ body:has(main:hover) .sidebar {
 	}
 }
 
-/* 链接：不用颜色区分 —— 继承正文颜色，改用「下划线 + 加粗」标记 */
+/* 链接：不用颜色区分 —— 继承正文颜色，改用「下划线 + 加粗」标记。
+   字重和标题、正文加粗统一用 500，理由见下面 strong/b 那段注释 */
 a {
 	color: inherit;
-	font-weight: 600;
+	font-weight: 500;
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
 	text-underline-offset: 3px;
@@ -286,6 +287,16 @@ a:hover {
 .tree-link {
 	font-weight: inherit;
 	text-decoration: none;
+}
+
+/* 正文加粗：和标题同一套处理，用 500 而不是浏览器默认的 700。
+   两个理由：一是参考站文章里的 <strong> 虽然写着 600，但它同样只加载了 Inter 400 面
+   （实测渲染宽度与真 400 完全一致），那个 600 是合成伪粗体，观感约等于真 500；
+   二是 700 会让中文落到 PingFang Semibold、比同行的拉丁字母明显更重，
+   而 500 是 Inter Medium + PingFang Medium，两边笔画一致。 */
+strong,
+b {
+	font-weight: 500;
 }
 
 /* ---------- 页头 / 页脚 ---------- */
@@ -483,7 +494,7 @@ main {
 
 /* 卡片整块可点，下划线只加在标题上，别外溢到日期和摘要 */
 .note-title {
-	font-weight: 600;
+	font-weight: 500;
 	font-size: 1.02rem;
 	line-height: 1.5;
 	text-decoration: underline;
@@ -513,7 +524,7 @@ main {
 
 .year-heading {
 	font-size: 0.9rem;
-	font-weight: 600;
+	font-weight: 500;
 	color: var(--fg-subtle);
 	margin: 2rem 0 0.25rem;
 	font-variant-numeric: tabular-nums;
@@ -737,7 +748,7 @@ main {
 
 .prose th {
 	background: var(--bg-subtle);
-	font-weight: 600;
+	font-weight: 500;
 }
 
 /* ---------- Obsidian 语法适配 ---------- */
@@ -763,7 +774,7 @@ a.wikilink {
 .callout::before {
 	content: attr(data-callout-title);
 	display: block;
-	font-weight: 650;
+	font-weight: 500;
 	font-size: 0.92rem;
 	color: var(--callout-color);
 	margin-bottom: 0.35rem;
@@ -819,7 +830,7 @@ a.wikilink {
 }
 
 .toc-title {
-	font-weight: 650;
+	font-weight: 500;
 	font-size: 0.86rem;
 	color: var(--fg-subtle);
 	margin-bottom: 0.4rem;
