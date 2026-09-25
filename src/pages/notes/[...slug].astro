@@ -27,6 +27,7 @@ const isUpdated = updated && updated.valueOf() !== date.valueOf();
 	<article>
 		<header class="note-header">
 			<h1>{title}</h1>
+			{description && <p class="page-subtitle">{description}</p>}
 			<div class="note-meta">
 				<FormattedDate date={date} />
 				{isUpdated && <span>更新于 <FormattedDate date={updated} /></span>}

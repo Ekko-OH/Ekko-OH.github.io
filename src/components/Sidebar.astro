@@ -1,0 +1,48 @@
+---
+/**
+ * 左侧目录树：上面是笔记（按目录层级），下面是标签。
+ * 布局和样式见 global.css 的「左侧目录树」一节。
+ */
+import { Icon } from 'astro-icon/components';
+import NoteTree from './NoteTree.astro';
+import { buildNoteTree, collectTags, getNotes, tagHref } from '../lib/notes';
+
+const notes = await getNotes();
+const tree = buildNoteTree(notes);
+const tags = collectTags(notes);
+const currentPath = Astro.url.pathname;
+---
+
+<aside class="sidebar">
+	<div class="sidebar-section">
+		<a class="sidebar-head" href="/notes/">
+			<Icon name="lucide:menu" aria-hidden="true" />
+			<span>笔记</span>
+		</a>
+		{tree.length > 0 ? <NoteTree nodes={tree} currentPath={currentPath} /> : <p class="sidebar-empty">还没有笔记</p>}
+	</div>
+
+	{
+		tags.length > 0 && (
+			<div class="sidebar-section">
+				<a class="sidebar-head" href="/tags/">
+					<Icon name="lucide:hash" aria-hidden="true" />
+					<span>标签</span>
+				</a>
+				<ul class="tree">
+					{tags.map(({ tag, count }) => (
+						<li>
+							<a
+								href={tagHref(tag)}
+								class:list={['tree-link', { active: currentPath === tagHref(tag) }]}
+							>
+								{tag}
+								<span class="tree-count">{count}</span>
+							</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		)
+	}
+</aside>

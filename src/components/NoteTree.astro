@@ -1,0 +1,37 @@
+---
+/**
+ * 侧栏的笔记目录树。递归组件：目录节点会再渲染一层自己。
+ */
+import type { NoteTreeNode } from '../lib/notes';
+
+interface Props {
+	nodes: NoteTreeNode[];
+	depth?: number;
+	currentPath: string;
+}
+
+const { nodes, depth = 0, currentPath } = Astro.props;
+---
+
+<ul class="tree" data-depth={depth}>
+	{
+		nodes.map((node) => (
+			<li>
+				{node.href ? (
+					<a
+						href={node.href}
+						class:list={['tree-link', { active: currentPath === node.href }]}
+						aria-current={currentPath === node.href ? 'page' : undefined}
+					>
+						{node.label}
+					</a>
+				) : (
+					<span class="tree-folder">{node.label}</span>
+				)}
+				{node.children.length > 0 && (
+					<Astro.self nodes={node.children} depth={depth + 1} currentPath={currentPath} />
+				)}
+			</li>
+		))
+	}
+</ul>

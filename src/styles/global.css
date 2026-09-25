@@ -9,6 +9,7 @@
 	--fg: #18181b;
 	--fg-subtle: #5b6472;
 	--border: #e4e7ec;
+	--dot: #e4e6eb;
 	--link: #1d4ed8;
 	--link-hover: #1e3a8a;
 	--accent: #1d4ed8;
@@ -29,6 +30,7 @@
 	--fg: #e7e9ee;
 	--fg-subtle: #9aa3b2;
 	--border: #272b33;
+	--dot: #232830;
 	--link: #8ab4ff;
 	--link-hover: #c2d6ff;
 	--accent: #8ab4ff;
@@ -48,7 +50,10 @@ html {
 
 body {
 	margin: 0;
-	background: var(--bg);
+	background-color: var(--bg);
+	/* 点阵底纹：想要纯色底就删掉下面两行 */
+	background-image: radial-gradient(circle, var(--dot) 1px, transparent 1px);
+	background-size: 18px 18px;
 	color: var(--fg);
 	font-family: var(--font-sans);
 	font-size: 16px;
@@ -74,6 +79,112 @@ body {
 	width: 100%;
 	padding-left: var(--gutter);
 	padding-right: var(--gutter);
+}
+
+/* ---------- 整体骨架：左边目录树 + 右边正文 ---------- */
+
+.shell {
+	display: grid;
+	grid-template-columns: 13rem minmax(0, 1fr);
+	gap: 3rem;
+	align-items: start;
+	/* 必须显式 100%：body 是 flex 列，子项配 margin:auto 会退化成按内容收缩，
+	   那样列表页和笔记页的正文列宽会不一致 */
+	width: 100%;
+	max-width: 82rem;
+	margin: 0 auto;
+	padding-left: var(--gutter);
+	padding-right: var(--gutter);
+}
+
+/* 窄屏放不下侧栏：整棵树收起来，顶部那几个图标仍能导航 */
+@media (max-width: 900px) {
+	.shell {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.sidebar {
+		display: none;
+	}
+}
+
+/* ---------- 左侧目录树 ---------- */
+
+.sidebar {
+	position: sticky;
+	top: 1rem;
+	max-height: calc(100vh - 2rem);
+	overflow-y: auto;
+	font-size: 0.875rem;
+}
+
+.sidebar-section + .sidebar-section {
+	margin-top: 2rem;
+}
+
+.sidebar-head {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin-bottom: 0.55rem;
+	font-weight: 650;
+	color: var(--fg);
+}
+
+.sidebar-head:hover {
+	color: var(--fg);
+	text-decoration: none;
+}
+
+.sidebar-head svg {
+	width: 1.05rem;
+	height: 1.05rem;
+	color: var(--fg-subtle);
+}
+
+.sidebar-empty {
+	margin: 0;
+	color: var(--fg-subtle);
+}
+
+.tree {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+/* 每深一层缩进一点 */
+.tree .tree {
+	margin-left: 0.9rem;
+}
+
+.tree-link,
+.tree-folder {
+	display: block;
+	padding: 0.2rem 0;
+	line-height: 1.45;
+	color: var(--fg-subtle);
+}
+
+/* 目录名比笔记名深一点，和参考图一致 */
+.tree-folder {
+	color: var(--fg);
+	font-weight: 600;
+}
+
+.tree-link:hover {
+	color: var(--fg);
+	text-decoration: none;
+}
+
+.tree-link.active {
+	color: var(--accent);
+}
+
+.tree-count {
+	margin-left: 0.35rem;
+	font-size: 0.78rem;
+	opacity: 0.6;
+	font-variant-numeric: tabular-nums;
 }
 
 a {
@@ -227,15 +338,17 @@ main {
 }
 
 .hero h1 {
-	font-size: 1.9rem;
-	line-height: 1.3;
-	margin: 0 0 0.6rem;
-	letter-spacing: -0.01em;
+	font-size: 2.3rem;
+	font-weight: 700;
+	line-height: 1.25;
+	margin: 0 0 0.7rem;
+	letter-spacing: -0.02em;
 }
 
 .hero p {
 	margin: 0;
 	color: var(--fg-subtle);
+	font-style: italic;
 	max-width: 34rem;
 }
 
@@ -248,9 +361,7 @@ main {
 	align-items: baseline;
 	justify-content: space-between;
 	gap: 1rem;
-	border-bottom: 1px solid var(--border);
-	padding-bottom: 0.5rem;
-	margin-bottom: 1rem;
+	margin-bottom: 0.6rem;
 }
 
 .section-head h2 {
@@ -270,13 +381,9 @@ main {
 	padding: 0;
 }
 
-.note-list li + li {
-	border-top: 1px solid var(--border);
-}
-
 .note-item {
 	display: block;
-	padding: 1rem 0;
+	padding: 0.85rem 0;
 	color: inherit;
 }
 
@@ -372,10 +479,11 @@ main {
 }
 
 .note-header h1 {
-	font-size: 1.75rem;
-	line-height: 1.35;
-	margin: 0 0 0.6rem;
-	letter-spacing: -0.01em;
+	font-size: 2.1rem;
+	font-weight: 700;
+	line-height: 1.3;
+	margin: 0 0 0.7rem;
+	letter-spacing: -0.02em;
 }
 
 .note-header .note-meta {
@@ -400,9 +508,8 @@ main {
 }
 
 .prose h2 {
-	font-size: 1.3rem;
-	padding-bottom: 0.3rem;
-	border-bottom: 1px solid var(--border);
+	font-size: 1.35rem;
+	font-weight: 700;
 }
 
 .prose h3 {
@@ -577,17 +684,14 @@ a.wikilink {
 
 /* ---------- 目录 / 上下篇 ---------- */
 
+/* 目录不再做成卡片，只留一点缩进层级 */
 .toc {
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	background: var(--bg-subtle);
-	padding: 0.9rem 1.1rem;
-	margin: 0 0 2rem;
+	margin: 0 0 2.2rem;
 	font-size: 0.9rem;
 }
 
 .toc-title {
-	font-weight: 600;
+	font-weight: 650;
 	font-size: 0.86rem;
 	color: var(--fg-subtle);
 	margin-bottom: 0.4rem;
@@ -605,8 +709,6 @@ a.wikilink {
 
 .note-footer {
 	margin-top: 3rem;
-	padding-top: 1.25rem;
-	border-top: 1px solid var(--border);
 	font-size: 0.9rem;
 	color: var(--fg-subtle);
 }
@@ -614,9 +716,17 @@ a.wikilink {
 /* ---------- 关于页 ---------- */
 
 .page-title {
-	font-size: 1.6rem;
+	font-size: 2.1rem;
+	font-weight: 700;
 	margin: 0 0 1.5rem;
-	letter-spacing: -0.01em;
+	letter-spacing: -0.02em;
+}
+
+/* 标题下面那行斜体说明（笔记的 description / 首页简介） */
+.page-subtitle {
+	margin: -0.6rem 0 1.6rem;
+	font-style: italic;
+	color: var(--fg-subtle);
 }
 
 @media (max-width: 480px) {

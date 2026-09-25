@@ -134,8 +134,8 @@ src/
 ├── content.config.ts        # 笔记集合的 schema（frontmatter 字段定义）
 ├── content/notes/           # ← 笔记都在这里
 ├── icons/                   # 自己的 SVG 放这里，用 <Icon name="local:xxx" />
-├── layouts/BaseLayout.astro # 全站骨架：head、导航、页脚
-├── components/              # 笔记卡片、日期、主题切换按钮
+├── layouts/BaseLayout.astro # 全站骨架：head、页头、侧栏+正文网格、页脚
+├── components/              # 笔记卡片、日期、主题切换按钮、侧栏目录树
 ├── lib/notes.ts             # 取笔记、排序、标签、分组的公共逻辑
 ├── plugins/remark-obsidian.mjs  # Obsidian 语法适配
 ├── pages/
@@ -151,15 +151,28 @@ src/
 
 ## 版式
 
-两类容器，别混用：
+外层骨架是「左边目录树 + 右边正文」，由 `BaseLayout.astro` 里的 `.shell` 网格控制：
 
 | 类名 | 用途 | 行为 |
 | --- | --- | --- |
 | `.bar` | 页头、页脚 | 铺满整个浏览器宽度，只留左右 `--gutter` 的内边距 |
-| `.wrap` | `main` 正文列 | 限制在 `--maxw`（46rem）并居中，**不随浏览器拉宽** |
+| `.shell` | 侧栏 + 正文的网格 | 居中，最宽 `82rem`；左列 13rem 侧栏，右列正文 |
+| `.wrap` | `main` 正文列 | 限制在 `--maxw`（46rem），**不随浏览器拉宽** |
 
-笔记正文的实际行宽 = `--maxw` 减去两侧 `--gutter`，默认约 696px。想调阅读宽度就改 `--maxw`，
-页头页脚会一直保持通栏。
+- 笔记正文实际行宽 = `--maxw` 减两侧 `--gutter`，默认 **696px**。想调阅读宽度就改 `--maxw`。
+- 屏幕窄于 **900px** 时侧栏整棵收起（顶部那几个图标仍能导航）。
+- 背景是点阵底纹，颜色变量 `--dot`；想要纯色底就删掉 `body` 里 `background-image` 和 `background-size` 那两行。
+
+### 左侧目录树
+
+`src/components/Sidebar.astro` + `NoteTree.astro`（递归组件），内容全部由笔记自动生成：
+
+- **笔记**：按笔记 id 里的 `/` 分层。现在笔记都是平铺的所以只有一层；
+  以后写 `os/memory.md` 这种子目录，侧栏会自动多出一级 `os`。
+- **标签**：所有标签加篇数。
+- 当前页会在树里高亮（`aria-current="page"` + 强调色）。
+
+不用手动维护任何导航清单，加笔记它自己就出现。
 
 ## 部署
 

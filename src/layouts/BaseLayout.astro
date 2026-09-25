@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
+import Sidebar from '../components/Sidebar.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { SITE, NAV } from '../site.config';
 
@@ -111,9 +112,12 @@ const isActive = (href: string) =>
 			</div>
 		</header>
 
-		<main class="wrap">
-			<slot />
-		</main>
+		<div class="shell">
+			<Sidebar />
+			<main class="wrap">
+				<slot />
+			</main>
+		</div>
 
 		<footer class="site-footer">
 			<div class="bar">
