@@ -10,6 +10,8 @@
 	--fg-subtle: #5b6472;
 	--border: #e4e7ec;
 	--accent: #1d4ed8;
+	/* 梅枝描边色（参考站写死的是 #88888825，这里拆成明暗两套） */
+	--art-stroke: rgba(136, 136, 136, 0.145);
 	--radius: 10px;
 	--maxw: 46rem;
 	--gutter: 1.25rem;
@@ -31,6 +33,7 @@
 	--fg-subtle: #9aa3b2;
 	--border: #272b33;
 	--accent: #8ab4ff;
+	--art-stroke: rgba(198, 204, 214, 0.16);
 	color-scheme: dark;
 }
 
@@ -56,6 +59,30 @@ body {
 	min-height: 100vh;
 	flex-direction: column;
 	-webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 梅枝背景 ---------- */
+
+.art-plum {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	/* 正中擦成透明、越靠边越实：枝条只在四周出现，正文区域保持干净 */
+	mask-image: radial-gradient(circle, transparent, black);
+	-webkit-mask-image: radial-gradient(circle, transparent, black);
+}
+
+.art-plum canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+@media print {
+	.art-plum {
+		display: none;
+	}
 }
 
 /* 正文列：限制可读行宽，不随浏览器一起拉宽 */

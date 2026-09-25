@@ -89,6 +89,11 @@ const isActive = (href: string) =>
 		<meta property="og:type" content="website" />
 	</head>
 	<body>
+		<!-- 梅枝背景：铺满视口、压在内容下面，正中用径向遮罩擦干净保证可读性 -->
+		<div class="art-plum" aria-hidden="true">
+			<canvas data-art-plum></canvas>
+		</div>
+
 		<header class="site-header">
 			<div class="bar header-inner">
 				<a class="brand" href="/">{SITE.title}</a>
@@ -129,5 +134,10 @@ const isActive = (href: string) =>
 				</p>
 			</div>
 		</footer>
+
+		<script>
+			import { initPlumArt } from '../scripts/art-plum';
+			initPlumArt();
+		</script>
 	</body>
 </html>
