@@ -151,7 +151,8 @@ a:hover {
 	border-color: var(--fg-subtle);
 }
 
-.theme-toggle svg {
+/* 图标本体由 UnoCSS 的 presetIcons 生成（i-lucide-*），这里只管尺寸和显隐 */
+.theme-toggle :is(.icon-moon, .icon-sun) {
 	width: 16px;
 	height: 16px;
 }

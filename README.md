@@ -87,6 +87,40 @@ draft: true                      # 选填，草稿只在本地可见
 
 按钮本身在 `src/components/ThemeToggle.astro`，只有图标和 DOM，逻辑都在 `BaseLayout.astro` 的内联脚本里。
 
+## 图标和原子类（UnoCSS）
+
+图标用 [UnoCSS](https://unocss.dev) 的 `presetIcons`，图标集是 [Lucide](https://lucide.dev)。
+配置在 `uno.config.ts`，直接用类名，不需要一个个 import SVG：
+
+```html
+<span class="i-lucide-moon"></span>
+<span class="i-lucide-sun text-lg"></span>
+```
+
+图标名去 <https://icones.js.org> 查（选 Lucide 集合），把 `moon` 换掉即可。
+换/加图标集就装对应的 `@iconify-json/<集合名>`（如 `@iconify-json/tabler`），类名变成 `i-tabler-xxx`。
+图标是编译进 CSS 的，只装用得上的集合。
+
+### 配置里三个刻意的选择
+
+| 配置 | 为什么 |
+| --- | --- |
+| `preflight: false` | 站点基础样式在 `global.css`，关掉 UnoCSS 自带的 reset，避免两套互相覆盖 |
+| `dark: { dark: '[data-theme="dark"]' }` | 让 `dark:` 变体跟着站点的主题属性走，而不是跟随系统或 `.dark` 类 |
+| `presetIcons({ mode: 'mask' })` | 单色图标用 mask 生成、底色是 `currentColor`，所以图标自动跟随文字颜色和主题 |
+
+另外用的是 `@unocss/astro` 而不是 `unocss/astro`：后者会自动塞一个 `presetWind3()`，
+会让配置里的 `preflight: false` 失效。预设统一在 `uno.config.ts` 里配。
+
+### 两个坑
+
+1. **类名必须静态写在源码里**。UnoCSS 靠扫源码提取类名，`class={`i-lucide-${name}`}` 这种拼出来的名字扫不到，不会生成样式。要动态就写一张全量映射表。
+2. **原子类默认压不过 `global.css`**。产物里 UnoCSS 的规则排在 `global.css` 之前，同一个属性被两边设置且权重相同时，`global.css` 获胜 —— 比如 `class="tag text-sm"` 里的 `text-sm` 不会生效。要强制就用 `!`：`class="tag !text-sm"` → `font-size:0.875rem!important`。
+   以后原子类用多了可以给 `global.css` 整体套一层 `@layer base` 来根治，现在还不必要。
+
+扫描范围限定在 `src/**/*.{astro,ts,tsx,js,jsx}`（见 `uno.config.ts` 的 `content.filesystem`），
+**不扫 Markdown 正文**，免得把中文笔记里的词当成类名。
+
 ## 站点配置
 
 | 想改什么 | 改哪里 |

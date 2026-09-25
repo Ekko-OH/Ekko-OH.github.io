@@ -18,5 +18,10 @@
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.136",
+    "@unocss/astro": "^66.10.5",
+    "unocss": "^66.10.5"
   }
 }
