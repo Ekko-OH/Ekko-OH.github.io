@@ -114,6 +114,14 @@ a:hover {
 	text-decoration: none;
 }
 
+/* 导航图标 + 主题切换按钮成一组，整组贴到最右侧 */
+.header-actions {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
 .site-header nav {
 	display: flex;
 	flex-wrap: wrap;
@@ -151,7 +159,6 @@ a:hover {
 /* ---------- 主题切换按钮 ---------- */
 
 .theme-toggle {
-	margin-left: auto;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;

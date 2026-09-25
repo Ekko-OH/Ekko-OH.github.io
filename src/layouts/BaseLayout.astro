@@ -90,22 +90,24 @@ const isActive = (href: string) =>
 		<header class="site-header">
 			<div class="bar header-inner">
 				<a class="brand" href="/">{SITE.title}</a>
-				<nav>
-					{
-						NAV.map((item) => (
-							<a
-								href={item.href}
-								class:list={['nav-link', { active: isActive(item.href) }]}
-								aria-current={isActive(item.href) ? 'page' : undefined}
-								aria-label={item.label}
-								title={item.label}
-							>
-								<Icon name={item.icon} aria-hidden="true" />
-							</a>
-						))
-					}
-				</nav>
-				<ThemeToggle />
+				<div class="header-actions">
+					<nav>
+						{
+							NAV.map((item) => (
+								<a
+									href={item.href}
+									class:list={['nav-link', { active: isActive(item.href) }]}
+									aria-current={isActive(item.href) ? 'page' : undefined}
+									aria-label={item.label}
+									title={item.label}
+								>
+									<Icon name={item.icon} aria-hidden="true" />
+								</a>
+							))
+						}
+					</nav>
+					<ThemeToggle />
+				</div>
 			</div>
 		</header>
 
