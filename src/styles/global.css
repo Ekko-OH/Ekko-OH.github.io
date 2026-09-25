@@ -9,7 +9,6 @@
 	--fg: #18181b;
 	--fg-subtle: #5b6472;
 	--border: #e4e7ec;
-	--dot: #e4e6eb;
 	--link: #1d4ed8;
 	--link-hover: #1e3a8a;
 	--accent: #1d4ed8;
@@ -30,7 +29,6 @@
 	--fg: #e7e9ee;
 	--fg-subtle: #9aa3b2;
 	--border: #272b33;
-	--dot: #232830;
 	--link: #8ab4ff;
 	--link-hover: #c2d6ff;
 	--accent: #8ab4ff;
@@ -50,10 +48,7 @@ html {
 
 body {
 	margin: 0;
-	background-color: var(--bg);
-	/* 点阵底纹：想要纯色底就删掉下面两行 */
-	background-image: radial-gradient(circle, var(--dot) 1px, transparent 1px);
-	background-size: 18px 18px;
+	background: var(--bg);
 	color: var(--fg);
 	font-family: var(--font-sans);
 	font-size: 16px;
