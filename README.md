@@ -249,9 +249,16 @@ Inter 只覆盖拉丁字符，中文会继续往 `--font-sans` 后面的 PingFan
 
 | 元素 | 值 |
 | --- | --- |
-| h1 | `2.25rem` (36px) / weight **800** |
-| h2 | `1.5rem` (24px) / weight **700**，间距 48px / 24px |
+| h1 | `2.25rem` (36px) / weight **500** |
+| h2 | `1.5rem` (24px) / weight **500**，间距 48px / 24px |
 | 正文 | 16px，行高 28px |
+
+> **字重为什么是 500 而不是 800**：参考站的 CSS 里 h1 写的是 `font-weight: 800`，
+> 但它**只装了 Inter 的 400 面**（`document.fonts` 里 7 个 unicode-range 子集全是 w400），
+> 所以那个 800 是浏览器**合成的伪粗体**。实测它的 h1 渲染宽度 66.78px，
+> 正好等于真 Inter 400 的宽度；按墨量算，它的观感约等于真 **500~600**。
+> 另外标题常是中英混排，600 会让中文落到 PingFang Semibold、笔画明显比同行的拉丁字母重，
+> 500（Inter Medium + PingFang Medium）两边才一致。想更重就改这一处数字。
 
 换字体：改 `--font-sans` 的第一项，并替换 BaseLayout 里那行 import。
 
