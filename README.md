@@ -234,9 +234,38 @@ a {
 | `.brand` | 站名 |
 | `.tag` | 标签胶囊 |
 | `.tree-link` | 侧栏导航列表；当前页改用**加粗 + 2px 下划线**标识，不再用颜色 |
+| `.header-anchor` | 标题旁的 `#` 锚点，属于符号而不是文字 |
 
 - 目前**唯一还带颜色的文字**是 callout 的标题（按类型配色：warning 橙、tip 青、danger 红）和代码高亮。前者要改成单色的话，把 `.callout::before` 的 `color` 改成 `var(--fg)` 即可。
 - 想恢复彩色链接：把 `a` 里的 `color: inherit` 换成颜色变量，并在 `:root` 里补一个。
+
+## 字体与标题
+
+正文字体是 **[Inter](https://rsms.me/inter/)（自托管，不走 CDN）** —— 用 `@fontsource-variable/inter` 装进来，
+在 `BaseLayout.astro` 顶部 `import '@fontsource-variable/inter'` 引入，构建时打包进 `dist/_astro/`。
+Inter 只覆盖拉丁字符，中文会继续往 `--font-sans` 后面的 PingFang SC / 微软雅黑 等系统字体落。
+
+字号和字重是照着参考站 [antfu.me](https://antfu.me/use) 量的（实测数据，不是估的）：
+
+| 元素 | 值 |
+| --- | --- |
+| h1 | `2.25rem` (36px) / weight **800** |
+| h2 | `1.5rem` (24px) / weight **700**，间距 48px / 24px |
+| 正文 | 16px，行高 28px |
+
+换字体：改 `--font-sans` 的第一项，并替换 BaseLayout 里那行 import。
+
+## 标题的 # 锚点
+
+`h2`/`h3`/`h4` 悬浮时左侧浮现一个 `#`（透明度 0 → 0.5），点击跳到该小节并把 hash 写进地址栏，方便复制链接。
+
+实现见 `src/plugins/rehype-heading-anchor.mjs`，注册在 `astro.config.mjs` 的 `rehypePlugins`。
+
+> **写这个插件时必须知道的一件事**：Astro 的 `rehypeHeadingIds` 注册在**用户 rehype 插件之后**，
+> 所以插件跑的时候标题还没有 id，不能直接读 `node.properties.id`。
+> 好在它的逻辑是「已有 string 类型的 id 就不动」，所以插件自己用 `github-slugger`
+> （和它同一套算法、同一个实例）先把 id 算出来，它后面会原样沿用，TOC 用的也是这个 id。
+> 另外插件会给 **h1–h6 全部**算 id 而不只是加了锚点的 h2–h4，否则重复标题可能出现 id 撞车。
 
 ## 部署
 

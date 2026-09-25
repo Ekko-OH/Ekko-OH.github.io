@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import icon from 'astro-icon';
 import { unified } from '@astrojs/markdown-remark';
+import rehypeHeadingAnchor from './src/plugins/rehype-heading-anchor.mjs';
 import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 
 // https://astro.build/config
@@ -17,6 +18,7 @@ export default defineConfig({
 		// Obsidian 的 [[wikilink]] 和 > [!note] callout 语法。
 		processor: unified({
 			remarkPlugins: [remarkObsidian],
+			rehypePlugins: [rehypeHeadingAnchor],
 		}),
 		shikiConfig: {
 			// 跟随系统深浅色自动切换代码配色

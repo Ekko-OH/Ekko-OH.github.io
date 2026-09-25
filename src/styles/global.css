@@ -13,8 +13,11 @@
 	--radius: 10px;
 	--maxw: 46rem;
 	--gutter: 1.25rem;
-	--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB',
-		'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+	/* Inter 自托管（@fontsource-variable/inter，见 BaseLayout 的 import）。
+	   它只覆盖拉丁字符，中文会继续往后落到系统字体。 */
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC',
+		sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 	color-scheme: light;
 }
@@ -398,8 +401,8 @@ main {
 }
 
 .hero h1 {
-	font-size: 2.3rem;
-	font-weight: 700;
+	font-size: 2.25rem;
+	font-weight: 800;
 	line-height: 1.25;
 	margin: 0 0 0.7rem;
 	letter-spacing: -0.02em;
@@ -543,8 +546,8 @@ main {
 }
 
 .note-header h1 {
-	font-size: 2.1rem;
-	font-weight: 700;
+	font-size: 2.25rem;
+	font-weight: 800;
 	line-height: 1.3;
 	margin: 0 0 0.7rem;
 	letter-spacing: -0.02em;
@@ -566,22 +569,46 @@ main {
 .prose h2,
 .prose h3,
 .prose h4 {
+	/* 给悬浮出现的 # 锚点做定位参照 */
+	position: relative;
 	line-height: 1.4;
 	margin: 2.4rem 0 0.8rem;
 	letter-spacing: -0.005em;
 }
 
+/* 字号/字重对齐参考站：h2 = 24px/700、上下间距 48/24 */
 .prose h2 {
-	font-size: 1.35rem;
+	font-size: 1.5rem;
 	font-weight: 700;
+	line-height: 1.35;
+	margin: 3rem 0 1.5rem;
 }
 
 .prose h3 {
-	font-size: 1.12rem;
+	font-size: 1.2rem;
+	font-weight: 700;
 }
 
 .prose h4 {
 	font-size: 1rem;
+}
+
+/* 悬浮标题时左侧浮现 #，点它就能跳到 / 复制该小节的链接 */
+.header-anchor {
+	position: absolute;
+	left: -1.15em;
+	color: inherit;
+	font-weight: 700;
+	font-size: 0.85em;
+	text-decoration: none;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.prose h2:hover .header-anchor,
+.prose h3:hover .header-anchor,
+.prose h4:hover .header-anchor {
+	opacity: 0.5;
 }
 
 .prose p,
@@ -780,8 +807,8 @@ a.wikilink {
 /* ---------- 关于页 ---------- */
 
 .page-title {
-	font-size: 2.1rem;
-	font-weight: 700;
+	font-size: 2.25rem;
+	font-weight: 800;
 	margin: 0 0 1.5rem;
 	letter-spacing: -0.02em;
 }
