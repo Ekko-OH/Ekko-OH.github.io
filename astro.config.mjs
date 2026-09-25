@@ -1,6 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import UnoCSS from '@unocss/astro';
+import icon from 'astro-icon';
 import { unified } from '@astrojs/markdown-remark';
 import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 
@@ -8,9 +8,9 @@ import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 export default defineConfig({
 	// 部署在 https://seekingthemoon.github.io （用户主页仓库，根路径，不需要 base）
 	site: 'https://seekingthemoon.github.io',
-	// 用 @unocss/astro 而不是 unocss/astro：后者会自动塞一个 presetWind3()，
-	// 会让 uno.config.ts 里的 preflight: false 失效。预设统一在 uno.config.ts 里配。
-	integrations: [UnoCSS()],
+	// 图标：<Icon name="lucide:moon" />，图标集来自 @iconify-json/lucide。
+	// 本站是静态输出，不用配 include（那个选项是给 output: 'server' 控制服务端打包体积用的）。
+	integrations: [icon()],
 	markdown: {
 		// Astro 7 默认用 Sätteri 处理器，但它不跑 remark 插件。
 		// 这里显式选回 remark/rehype 管线，才能用下面这个插件处理

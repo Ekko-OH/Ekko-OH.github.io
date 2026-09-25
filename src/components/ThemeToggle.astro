@@ -2,12 +2,14 @@
 /**
  * 主题切换按钮。
  *
- * 图标用 UnoCSS 的 presetIcons 生成：i-lucide-moon / i-lucide-sun。
- * 单色图标走 mask 实现，颜色继承 currentColor，所以深浅色都能自动对上。
+ * 图标用 astro-icon 的 <Icon> 组件，图标集是 Lucide（@iconify-json/lucide）。
+ * 图标是内联的 <svg>，Lucide 用的是 stroke="currentColor"，
+ * 所以颜色自动跟随按钮文字颜色，深浅色不用单独处理。
  *
  * 只用画图标和提供点击目标 —— 初始主题由 BaseLayout 里的内联脚本
  * 在首屏绘制前决定，点击处理也放在那里（用事件委托），所以这里不需要 JS。
  */
+import { Icon } from 'astro-icon/components';
 ---
 
 <button
@@ -17,6 +19,6 @@
 	aria-label="切换深色 / 浅色主题"
 	title="切换深色 / 浅色主题"
 >
-	<span class="i-lucide-moon icon-moon" aria-hidden="true"></span>
-	<span class="i-lucide-sun icon-sun" aria-hidden="true"></span>
+	<Icon name="lucide:moon" class="icon-moon" aria-hidden="true" />
+	<Icon name="lucide:sun" class="icon-sun" aria-hidden="true" />
 </button>
