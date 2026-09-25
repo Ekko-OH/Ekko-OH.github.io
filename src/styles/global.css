@@ -751,6 +751,30 @@ main {
 	font-weight: 500;
 }
 
+/* ---------- 数学公式（KaTeX） ---------- */
+
+/* 公式里的中文要落回正文字体：KaTeX 自己的 KaTeX_Main 没有汉字，
+   默认会掉到衬线字体上，和正文的黑体对不上。
+   下面这些类名是 KaTeX 给普通字符（mord）、运算符、括号等分的组，
+   把正文字体追加在 KaTeX_Main 后面即可 —— 拉丁字符走 KaTeX，汉字走 PingFang。 */
+.katex .mord,
+.katex .mop,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .minner {
+	font-family: KaTeX_Main, var(--font-sans);
+}
+
+/* 行间公式在窄屏上会撑破容器，这里让它自己横向滚动 */
+.prose .katex-display {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 0.3rem 0;
+}
+
 /* ---------- Obsidian 语法适配 ---------- */
 
 /* [[wikilink]] */

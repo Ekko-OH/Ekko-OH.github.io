@@ -351,6 +351,29 @@ Inter 只覆盖拉丁字符，中文会继续往 `--font-sans` 后面的 PingFan
 > （和它同一套算法、同一个实例）先把 id 算出来，它后面会原样沿用，TOC 用的也是这个 id。
 > 另外插件会给 **h1–h6 全部**算 id 而不只是加了锚点的 h2–h4，否则重复标题可能出现 id 撞车。
 
+## 数学公式
+
+行内 `$…$` 和行间 `$$…$$` 都用 [KaTeX](https://katex.org) 渲染。三个依赖各管一段：
+`remark-math` 把公式解析成节点、`rehype-katex` 渲染、`katex` 本体与样式；
+样式在 `BaseLayout.astro` 里 `import 'katex/dist/katex.min.css'` 引入。
+
+`astro.config.mjs` 里有两个刻意的选项：
+
+| 选项 | 为什么 |
+| --- | --- |
+| `strict: false` | 公式里出现中文（如 `$$好 = F(今天, 天气, 真)$$`）KaTeX 默认会报错，关掉才照常渲染 |
+| `throwOnError: false` | 公式写错时只标红那一处，不炸掉整个构建 |
+
+`remarkMath` 必须排在 `remarkObsidian` **前面**：先把 `$…$` 变成 math 节点，
+后面那个改写文本节点的插件就不会去动公式里的内容。
+
+`global.css` 里还有一条 KaTeX 字体覆盖：KaTeX 自带的 `KaTeX_Main` 没有汉字，默认会让公式里的中文
+掉到衬线字体上、和正文的黑体对不上。把正文字体追加在它后面即可——拉丁字符走 KaTeX，汉字走 PingFang。
+
+> **别在标题里写公式**。标题的 id 由插件读标题文本算出来，而 KaTeX 渲染后的标题里混着给读屏用的
+> 隐藏 MathML（内容是 LaTeX 源码），会一起被算进 slug。实测 `## 当 $x^2$ 出现在标题里`
+> 生成的 id 是 `当-x2x2x2-出现在标题里`。
+
 ## 部署
 
 推送到 `main` 就自动部署，流程写在 `.github/workflows/deploy.yml`：
