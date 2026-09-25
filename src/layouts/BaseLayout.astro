@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { Icon } from 'astro-icon/components';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { SITE, NAV } from '../site.config';
 
@@ -96,8 +97,10 @@ const isActive = (href: string) =>
 								href={item.href}
 								class:list={['nav-link', { active: isActive(item.href) }]}
 								aria-current={isActive(item.href) ? 'page' : undefined}
+								aria-label={item.label}
+								title={item.label}
 							>
-								{item.label}
+								<Icon name={item.icon} aria-hidden="true" />
 							</a>
 						))
 					}

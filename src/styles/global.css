@@ -90,7 +90,6 @@ a:hover {
 /* ---------- 页头 / 页脚 ---------- */
 
 .site-header {
-	border-bottom: 1px solid var(--border);
 	margin-bottom: 2.5rem;
 }
 
@@ -118,12 +117,20 @@ a:hover {
 .site-header nav {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 1rem;
-	font-size: 0.94rem;
+	align-items: center;
+	/* 每个图标自己有 2rem 热区，间距不用大 */
+	gap: 0.25rem;
 }
 
+/* 导航是纯图标，文字在 aria-label / title 里 */
 .nav-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
 	color: var(--fg-subtle);
+	transition: color 0.15s ease;
 }
 
 .nav-link:hover {
@@ -131,9 +138,14 @@ a:hover {
 	text-decoration: none;
 }
 
+/* 当前页：图标颜色变深（同时带 aria-current="page" 供读屏识别） */
 .nav-link.active {
 	color: var(--fg);
-	font-weight: 600;
+}
+
+.nav-link svg {
+	width: 1.15rem;
+	height: 1.15rem;
 }
 
 /* ---------- 主题切换按钮 ---------- */
@@ -192,7 +204,6 @@ main {
 }
 
 .site-footer {
-	border-top: 1px solid var(--border);
 	padding: 1.5rem 0;
 	font-size: 0.86rem;
 	color: var(--fg-subtle);

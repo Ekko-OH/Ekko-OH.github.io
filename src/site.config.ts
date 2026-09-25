@@ -3,7 +3,7 @@
  */
 export const SITE = {
 	/** 浏览器标题栏 / 页头显示的名字 */
-	title: 'Seeking the Moon',
+	title: 'Ekko',
 	/** 首页副标题 */
 	tagline: '学习笔记与项目记录',
 	author: 'Ekko',
@@ -11,9 +11,14 @@ export const SITE = {
 	url: 'https://seekingthemoon.github.io',
 } as const;
 
+/**
+ * 导航：页面上只显示图标，文字放在 aria-label / title 里
+ * （鼠标悬停有 tooltip，读屏也能读出来）。
+ * icon 是 astro-icon 的图标名，去 https://icones.js.org 查（选 Lucide 集合）。
+ */
 export const NAV = [
-	{ href: '/', label: '首页' },
-	{ href: '/notes/', label: '笔记' },
-	{ href: '/tags/', label: '标签' },
-	{ href: '/about/', label: '关于' },
+	{ href: '/', label: '首页', icon: 'lucide:house' },
+	{ href: '/notes/', label: '笔记', icon: 'lucide:notebook-pen' },
+	{ href: '/tags/', label: '标签', icon: 'lucide:tag' },
+	{ href: '/about/', label: '关于', icon: 'lucide:user' },
 ] as const;
