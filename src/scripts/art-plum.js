@@ -17,6 +17,10 @@
  * 3. 这是个「临界分支过程」，**有时会提前灭绝**——枝条全跑出画布，段数远没到上限
  *    就结束了，看起来就偏稀。兜底做法是**再补几个起点接着长**（见 settle）。
  *    注意千万别用「清空重画」——那会让用户看到长到一半突然重来。
+ *
+ * 关于 prefers-reduced-motion：**这里故意不遵守**。站主要求背景始终播放生长动画，
+ * 即使系统开了「减弱动态效果」。这是有意为之，不是漏写，别当成 bug 修回去
+ * （想恢复尊重的话，就在 start() 里判断该系统偏好、然后一次画完不排 rAF）。
  */
 
 const STROKE_WIDTH = 1;
@@ -55,15 +59,12 @@ const MAX_SEGMENTS = 9000;
 const MIN_SEGMENTS = 4500;
 /** 补种次数上限，防止极端情况下反复补种 */
 const MAX_TOP_UPS = 6;
-/** 减少动效时一次性画完的保险阀 */
-const MAX_STEPS = 200000;
 
 /**
  * @param {HTMLCanvasElement} canvas
  */
 export function createPlumArt(canvas) {
 	const ctx = canvas.getContext('2d');
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 	let width = 0;
 	let height = 0;
@@ -177,26 +178,6 @@ export function createPlumArt(canvas) {
 		// 窄屏只留上下两条，左右会太挤
 		const edges = width < 500 ? [0, 1] : [0, 1, 2, 3];
 		queue = edges.map((edge) => seedAt(edge));
-
-		if (reduceMotion) {
-			let guard = 0;
-			while (guard < MAX_STEPS && drawn < MAX_SEGMENTS) {
-				if (queue.length === 0) {
-					if (drawn >= MIN_SEGMENTS || topUps >= MAX_TOP_UPS) break;
-					topUps += 1;
-					topUp();
-				}
-				const pending = queue;
-				queue = [];
-				for (const task of pending) {
-					// 内层也要判上限：一轮的待办可能有上千条，只在 while 上判会超出一大截
-					if (drawn >= MAX_SEGMENTS) break;
-					task();
-					guard += 1;
-				}
-			}
-			return;
-		}
 
 		lastFrame = performance.now();
 		raf = requestAnimationFrame(tick);

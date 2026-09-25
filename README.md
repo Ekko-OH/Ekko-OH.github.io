@@ -256,7 +256,9 @@ src/
 其他细节：
 
 - 描边色是 CSS 变量 `--art-stroke`，明暗两套各自定义；切换主题会重画（形状重新随机）。
-- 尊重 `prefers-reduced-motion: reduce`：不做逐帧动画，一次画完。
+- **故意不遵守 `prefers-reduced-motion`**：站主要求背景始终播放生长动画，即使系统开了「减弱动态效果」
+  （这是明确要求，不是漏写；文件头注释里也标了，免得以后被当成 bug 修回去）。
+  想恢复尊重：在 `start()` 里判断该系统偏好，命中就一次画完、不排 rAF。
 - 窗口 resize 后防抖重画；打印时整层隐藏。
 - **想去掉**：删掉 `BaseLayout.astro` 里的 `.art-plum` 那个 div 和末尾的 `<script>` 即可，其余不用动。
 
