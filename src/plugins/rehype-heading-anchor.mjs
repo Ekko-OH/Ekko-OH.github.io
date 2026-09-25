@@ -54,6 +54,9 @@ export default function rehypeHeadingAnchor() {
 
 			if (!ANCHORED.has(node.tagName)) return;
 
+			// 锚点**故意不放文本节点**，那个 `#` 由 CSS 的 ::before 生成。
+			// 原因：Astro 的 rehypeHeadingIds 会收集整段标题文字作为 headings[].text
+			// （左侧目录直接用它），放文本节点的话每个目录项都会多出一个 `#`。
 			node.children.unshift({
 				type: 'element',
 				tagName: 'a',
@@ -64,7 +67,7 @@ export default function rehypeHeadingAnchor() {
 					ariaHidden: 'true',
 					tabIndex: -1,
 				},
-				children: [{ type: 'text', value: '#' }],
+				children: [],
 			});
 		});
 	};

@@ -1,9 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../site.config';
+
+// 静态页面没有 render() 给的 headings，目录要自己写。
+// 注意 slug 必须和下面 <h2> 的 id 一致，改标题时两处一起改。
+const toc = [
+	{ depth: 2, slug: '这个站怎么搭的', text: '这个站怎么搭的' },
+	{ depth: 2, slug: '联系我', text: '联系我' },
+];
 ---
 
-<BaseLayout title="关于" description={`关于 ${SITE.author}`}>
+<BaseLayout title="关于" description={`关于 ${SITE.author}`} toc={toc}>
 	<h1 class="page-title">关于</h1>
 
 	<div class="prose">
@@ -12,14 +19,14 @@ import { SITE } from '../site.config';
 			主要是为了逼自己把学过的东西写清楚 —— 能写明白的，才算真的懂了。
 		</p>
 
-		<h2>这个站怎么搭的</h2>
+		<h2 id="这个站怎么搭的">这个站怎么搭的</h2>
 		<ul>
 			<li><a href="https://astro.build">Astro</a> 静态站点，源码托管在 GitHub</li>
 			<li>笔记是纯 Markdown 文件，改完 <code>git push</code> 就会自动构建发布</li>
 			<li>没有数据库、没有后端，全部是静态页面</li>
 		</ul>
 
-		<h2>联系我</h2>
+		<h2 id="联系我">联系我</h2>
 		<ul>
 			<li>GitHub：<a href="https://github.com/seekingtheMoon">@seekingtheMoon</a></li>
 		</ul>

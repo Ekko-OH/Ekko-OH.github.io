@@ -11,9 +11,12 @@ interface Props {
 	/** 页面标题，不传就用站点名 + 副标题 */
 	title?: string;
 	description?: string;
+	/** 当前页面的分节目录；不传或为空就不渲染左侧栏 */
+	toc?: { depth: number; slug: string; text: string }[];
 }
 
-const { title, description = SITE.description } = Astro.props;
+const { title, description = SITE.description, toc = [] } = Astro.props;
+const hasToc = toc.length > 0;
 const year = new Date().getFullYear();
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.tagline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
@@ -119,8 +122,8 @@ const isActive = (href: string) =>
 			</div>
 		</header>
 
-		<div class="shell">
-			<Sidebar />
+		<div class:list={['shell', { 'shell-with-toc': hasToc }]}>
+			{hasToc && <Sidebar toc={toc} />}
 			<main class="wrap">
 				<slot />
 			</main>

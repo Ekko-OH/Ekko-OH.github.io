@@ -102,11 +102,12 @@ body {
 	padding-right: var(--gutter);
 }
 
-/* ---------- 整体骨架：左边目录树 + 右边正文 ---------- */
+/* ---------- 整体骨架：左边本页目录 + 右边正文 ---------- */
 
 .shell {
 	display: grid;
-	grid-template-columns: 13rem minmax(0, 1fr);
+	/* 默认单列：只有当前页面有分节目录时，才由 .shell-with-toc 多留一列 */
+	grid-template-columns: minmax(0, 1fr);
 	gap: 3rem;
 	align-items: start;
 	/* 必须显式 100%：body 是 flex 列，子项配 margin:auto 会退化成按内容收缩，
@@ -120,9 +121,14 @@ body {
 	flex: 1 0 auto;
 }
 
-/* 窄屏放不下侧栏：整棵树收起来，顶部那几个图标仍能导航 */
+/* 当前页面有分节目录：左边让出 13rem 给目录 */
+.shell-with-toc {
+	grid-template-columns: 13rem minmax(0, 1fr);
+}
+
+/* 窄屏放不下侧栏：目录收起来 */
 @media (max-width: 900px) {
-	.shell {
+	.shell-with-toc {
 		grid-template-columns: minmax(0, 1fr);
 	}
 	.sidebar {
@@ -130,7 +136,7 @@ body {
 	}
 }
 
-/* ---------- 左侧目录树 ---------- */
+/* ---------- 左侧本页目录 ---------- */
 
 .sidebar {
 	position: sticky;
@@ -196,9 +202,9 @@ body {
 	padding: 0;
 }
 
-/* 每深一层缩进一点 */
-.tree .tree {
-	margin-left: 0.9rem;
+/* 目录里的三级标题缩进一级（只列 h2 + h3 两层） */
+.toc-depth-1 .tree-link {
+	padding-left: 0.9rem;
 }
 
 .tree-link,
@@ -659,6 +665,12 @@ main {
 	opacity: 0.5;
 }
 
+/* `#` 用 ::before 生成而不是写成文本节点 —— 否则它会被算进标题文字里，
+   左侧目录的每一项都会多出一个 `#`（rehype-heading-anchor.mjs 里有说明） */
+.header-anchor::before {
+	content: '#';
+}
+
 .prose p,
 .prose ul,
 .prose ol,
@@ -857,30 +869,9 @@ a.wikilink {
 	--callout-color: var(--fg-subtle);
 }
 
-/* ---------- 目录 / 上下篇 ---------- */
+/* ---------- 正文页脚 ---------- */
 
-/* 目录不再做成卡片，只留一点缩进层级 */
-.toc {
-	margin: 0 0 2.2rem;
-	font-size: 0.9rem;
-}
-
-.toc-title {
-	font-weight: 500;
-	font-size: 0.86rem;
-	color: var(--fg-subtle);
-	margin-bottom: 0.4rem;
-}
-
-.toc ol {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-.toc li.depth-3 {
-	padding-left: 1rem;
-}
+/* 目录已经搬到左侧栏，正文里不再重复一份 */
 
 .note-footer {
 	margin-top: 3rem;

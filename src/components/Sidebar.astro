@@ -1,48 +1,39 @@
 ---
 /**
- * 左侧目录树：上面是笔记（按目录层级），下面是标签。
- * 布局和样式见 global.css 的「左侧目录树」一节。
+ * 左侧栏：**当前页面的分节目录**（h2 / h3），不是全站导航。
+ *
+ * 目录由页面传进来：
+ *   - Markdown 笔记页：render() 返回的 headings
+ *   - 静态页面（如 about.astro）：页面自己写死的数组
+ * 没有小标题的页面不渲染这个组件（BaseLayout 里判断）。
  */
 import { Icon } from 'astro-icon/components';
-import NoteTree from './NoteTree.astro';
-import { buildNoteTree, collectTags, getNotes, tagHref } from '../lib/notes';
 
-const notes = await getNotes();
-const tree = buildNoteTree(notes);
-const tags = collectTags(notes);
-const currentPath = Astro.url.pathname;
+interface Props {
+	toc: { depth: number; slug: string; text: string }[];
+}
+
+const { toc } = Astro.props;
+
+// 只列最上面两层（一般是 h2 + h3），再往下列侧栏就太长了
+const minDepth = toc.length > 0 ? Math.min(...toc.map((item) => item.depth)) : 2;
+const items = toc.filter((item) => item.depth <= minDepth + 1);
 ---
 
-<aside class="sidebar">
-	<div class="sidebar-section">
-		<a class="sidebar-head" href="/notes/">
-			<Icon name="lucide:menu" aria-hidden="true" />
-			<span>笔记</span>
-		</a>
-		{tree.length > 0 ? <NoteTree nodes={tree} currentPath={currentPath} /> : <p class="sidebar-empty">还没有笔记</p>}
+<aside class="sidebar" aria-label="本页目录">
+	<div class="sidebar-head">
+		<Icon name="lucide:list-tree" aria-hidden="true" />
+		<span>目录</span>
 	</div>
-
-	{
-		tags.length > 0 && (
-			<div class="sidebar-section">
-				<a class="sidebar-head" href="/tags/">
-					<Icon name="lucide:hash" aria-hidden="true" />
-					<span>标签</span>
-				</a>
-				<ul class="tree">
-					{tags.map(({ tag, count }) => (
-						<li>
-							<a
-								href={tagHref(tag)}
-								class:list={['tree-link', { active: currentPath === tagHref(tag) }]}
-							>
-								{tag}
-								<span class="tree-count">{count}</span>
-							</a>
-						</li>
-					))}
-				</ul>
-			</div>
-		)
-	}
+	<ul class="tree">
+		{
+			items.map((item) => (
+				<li class:list={['toc-item', `toc-depth-${item.depth - minDepth}`]}>
+					<a class="tree-link" href={`#${item.slug}`}>
+						{item.text}
+					</a>
+				</li>
+			))
+		}
+	</ul>
 </aside>

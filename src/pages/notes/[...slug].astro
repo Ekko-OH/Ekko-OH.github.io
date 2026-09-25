@@ -19,11 +19,16 @@ interface Props {
 const { note } = Astro.props;
 const { Content, headings } = await render(note);
 const { title, date, updated, tags, description } = note.data;
+// 交给 BaseLayout 渲染成左侧栏的目录（不再在正文里重复放一份）
 const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const isUpdated = updated && updated.valueOf() !== date.valueOf();
 ---
 
-<BaseLayout title={title} description={description ?? `${title} —— ${note.data.tags.join('、')}`}>
+<BaseLayout
+	title={title}
+	description={description ?? `${title} —— ${note.data.tags.join('、')}`}
+	toc={toc}
+>
 	<article>
 		<header class="note-header">
 			<h1>{title}</h1>
@@ -45,21 +50,6 @@ const isUpdated = updated && updated.valueOf() !== date.valueOf();
 				}
 			</div>
 		</header>
-
-		{
-			toc.length >= 3 && (
-				<nav class="toc" aria-label="目录">
-					<div class="toc-title">目录</div>
-					<ol>
-						{toc.map((heading) => (
-							<li class={`depth-${heading.depth}`}>
-								<a href={`#${heading.slug}`}>{heading.text}</a>
-							</li>
-						))}
-					</ol>
-				</nav>
-			)
-		}
 
 		<div class="prose">
 			<Content />
