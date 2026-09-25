@@ -186,27 +186,32 @@ body {
 
 /* ---------- 自动隐藏：平时淡出，鼠标移上去或键盘聚焦才显示 ---------- */
 
-.header-actions,
-.sidebar {
+.header-actions {
 	opacity: 0;
 	transition: opacity 0.18s ease;
 }
 
-/* 导航图标：鼠标在页头、在正文里、或键盘聚焦时显示，其余时候隐去。
-   body:has(main:hover) 是「鼠标悬浮在文章上」——不用把鼠标挪到最顶上那条窄带。
-   不支持 :has() 的浏览器会忽略这一条，退化成只有页头 hover 才显示。 */
+.sidebar {
+	opacity: 0;
+	/* 隐藏慢一点：鼠标从正文移向侧栏要经过中间那段间隙，淡出太快会闪一下 */
+	transition: opacity 0.35s ease;
+}
+
+/* 导航图标：鼠标在页头上、或键盘聚焦时显示 */
 .site-header:hover .header-actions,
-.site-header:focus-within .header-actions,
-body:has(main:hover) .header-actions {
+.site-header:focus-within .header-actions {
 	opacity: 1;
 }
 
+/* 目录索引：鼠标在正文里、在侧栏上、或键盘聚焦时显示；移开正文就隐去 */
 .sidebar:hover,
-.sidebar:focus-within {
+.sidebar:focus-within,
+body:has(main:hover) .sidebar {
 	opacity: 1;
+	transition-duration: 0.12s;
 }
 
-/* 触屏没有 hover，一律常显，否则导航就用不了了 */
+/* 触屏没有 hover，一律常显，否则导航和目录就都点不到了 */
 @media (hover: none) {
 	.header-actions,
 	.sidebar {
