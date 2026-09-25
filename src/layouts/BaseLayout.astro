@@ -1,0 +1,71 @@
+---
+import '../styles/global.css';
+import { SITE, NAV } from '../site.config';
+
+interface Props {
+	/** 页面标题，不传就用站点名 + 副标题 */
+	title?: string;
+	description?: string;
+}
+
+const { title, description = SITE.description } = Astro.props;
+const year = new Date().getFullYear();
+const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+	href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{pageTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)" />
+	</head>
+	<body>
+		<header class="site-header">
+			<div class="wrap header-inner">
+				<a class="brand" href="/">{SITE.title}</a>
+				<nav>
+					{
+						NAV.map((item) => (
+							<a
+								href={item.href}
+								class:list={['nav-link', { active: isActive(item.href) }]}
+								aria-current={isActive(item.href) ? 'page' : undefined}
+							>
+								{item.label}
+							</a>
+						))
+					}
+				</nav>
+			</div>
+		</header>
+
+		<main class="wrap">
+			<slot />
+		</main>
+
+		<footer class="site-footer">
+			<div class="wrap">
+				<p>
+					© {year} {SITE.author} · 用 <a href="https://astro.build">Astro</a> 构建，托管在 <a
+						href="https://pages.github.com">GitHub Pages</a
+					>
+				</p>
+			</div>
+		</footer>
+	</body>
+</html>

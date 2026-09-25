@@ -1,0 +1,71 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { getNotes, tagHref, type Note } from '../../lib/notes';
+
+export async function getStaticPaths() {
+	const notes = await getNotes();
+	return notes.map((note) => ({
+		params: { slug: note.id },
+		props: { note },
+	}));
+}
+
+interface Props {
+	note: Note;
+}
+
+const { note } = Astro.props;
+const { Content, headings } = await render(note);
+const { title, date, updated, tags, description } = note.data;
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const isUpdated = updated && updated.valueOf() !== date.valueOf();
+---
+
+<BaseLayout title={title} description={description ?? `${title} —— ${note.data.tags.join('、')}`}>
+	<article>
+		<header class="note-header">
+			<h1>{title}</h1>
+			<div class="note-meta">
+				<FormattedDate date={date} />
+				{isUpdated && <span>更新于 <FormattedDate date={updated} /></span>}
+				{
+					tags.length > 0 && (
+						<span>
+							{tags.map((tag, index) => (
+								<>
+									{index > 0 && ' '}
+									<a href={tagHref(tag)}>#{tag}</a>
+								</>
+							))}
+						</span>
+					)
+				}
+			</div>
+		</header>
+
+		{
+			toc.length >= 3 && (
+				<nav class="toc" aria-label="目录">
+					<div class="toc-title">目录</div>
+					<ol>
+						{toc.map((heading) => (
+							<li class={`depth-${heading.depth}`}>
+								<a href={`#${heading.slug}`}>{heading.text}</a>
+							</li>
+						))}
+					</ol>
+				</nav>
+			)
+		}
+
+		<div class="prose">
+			<Content />
+		</div>
+
+		<footer class="note-footer">
+			<a href="/notes/">← 返回全部笔记</a>
+		</footer>
+	</article>
+</BaseLayout>

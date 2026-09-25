@@ -1,0 +1,29 @@
+---
+import type { Note } from '../lib/notes';
+import { noteHref } from '../lib/notes';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	note: Note;
+}
+
+const { note } = Astro.props;
+const { title, date, description, tags } = note.data;
+---
+
+<li>
+	<a class="note-item" href={noteHref(note.id)}>
+		<div class="note-title">{title}</div>
+		<div class="note-meta">
+			<FormattedDate date={date} />
+			{
+				tags.length > 0 && (
+					<span>
+						{tags.map((tag) => `#${tag}`).join(' ')}
+					</span>
+				)
+			}
+		</div>
+		{description && <p class="note-desc">{description}</p>}
+	</a>
+</li>

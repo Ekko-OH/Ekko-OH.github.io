@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { collectTags, getNotes, tagHref } from '../../lib/notes';
+
+const notes = await getNotes();
+const tags = collectTags(notes);
+---
+
+<BaseLayout title="标签" description="按标签浏览笔记">
+	<h1 class="page-title">标签</h1>
+
+	{
+		tags.length === 0 ? (
+			<p class="empty">还没有标签。在笔记的 frontmatter 里写 tags: [标签1, 标签2] 即可。</p>
+		) : (
+			<ul class="tag-list">
+				{tags.map(({ tag, count }) => (
+					<li>
+						<a class="tag" href={tagHref(tag)}>
+							{tag}
+							<span class="tag-count">{count}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</BaseLayout>

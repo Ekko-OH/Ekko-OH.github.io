@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NoteCard from '../../components/NoteCard.astro';
+import { collectTags, getNotes, groupByYear, tagHref } from '../../lib/notes';
+
+const notes = await getNotes();
+const groups = groupByYear(notes);
+const tags = collectTags(notes);
+---
+
+<BaseLayout title="笔记" description="全部学习笔记">
+	<h1 class="page-title">笔记</h1>
+
+	{
+		tags.length > 0 && (
+			<ul class="tag-list" style="margin-bottom: 2rem;">
+				{tags.map(({ tag, count }) => (
+					<li>
+						<a class="tag" href={tagHref(tag)}>
+							{tag}
+							<span class="tag-count">{count}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+
+	{
+		groups.length === 0 ? (
+			<p class="empty">还没有笔记。</p>
+		) : (
+			groups.map(({ year, items }) => (
+				<section>
+					<h2 class="year-heading">{year}</h2>
+					<ul class="note-list">
+						{items.map((note) => (
+							<NoteCard note={note} />
+						))}
+					</ul>
+				</section>
+			))
+		)
+	}
+</BaseLayout>
