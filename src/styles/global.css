@@ -114,6 +114,27 @@ body {
 	font-size: 0.875rem;
 }
 
+/* 宽屏（≥1280px）：正文相对「整个页面」居中，目录索引固定在左侧、
+   脱离布局流，所以它不会把正文往右推。
+   阈值 1280 是算出来的：正文半宽 368 + 侧栏右缘 228 + 一点间隙；
+   窄于这个宽度两者会重叠，那种情况下退回上面的网格布局。
+   注意这段必须放在基础 .sidebar 规则之后，否则 position 会被 sticky 覆盖。 */
+@media (min-width: 1280px) {
+	.shell {
+		display: block;
+		max-width: none;
+	}
+
+	.sidebar {
+		position: fixed;
+		left: var(--gutter);
+		top: 5rem;
+		width: 13rem;
+		max-height: calc(100vh - 6rem);
+		overflow-y: auto;
+	}
+}
+
 .sidebar-section + .sidebar-section {
 	margin-top: 2rem;
 }
