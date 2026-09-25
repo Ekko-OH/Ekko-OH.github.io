@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
 import { SITE, NAV } from '../site.config';
 
 interface Props {
@@ -21,6 +22,59 @@ const isActive = (href: string) =>
 <html lang="zh-CN">
 	<head>
 		<meta charset="utf-8" />
+		<!-- 必须放在下面的主题脚本之前，否则脚本找不到它 -->
+		<meta name="theme-color" content="#ffffff" />
+		<script is:inline>
+			// 在首屏绘制前决定主题，避免闪一下再变色。
+			// 优先用用户手动选过的，其次跟随系统。
+			(function () {
+				var root = document.documentElement;
+				var media = window.matchMedia('(prefers-color-scheme: dark)');
+
+				function chosen() {
+					try {
+						var value = localStorage.getItem('theme');
+						return value === 'light' || value === 'dark' ? value : null;
+					} catch (error) {
+						return null; // 隐私模式下读不到，当作没选过
+					}
+				}
+
+				function apply(theme) {
+					root.setAttribute('data-theme', theme);
+					var meta = document.querySelector('meta[name="theme-color"]');
+					if (meta) {
+						meta.setAttribute('content', theme === 'dark' ? '#0e1013' : '#ffffff');
+					}
+				}
+
+				function effective() {
+					return chosen() || (media.matches ? 'dark' : 'light');
+				}
+
+				apply(effective());
+
+				// 没手动选过时，跟随系统变化
+				media.addEventListener('change', function () {
+					if (!chosen()) apply(effective());
+				});
+
+				// 事件委托，按钮还没解析出来也能用
+				document.addEventListener('click', function (event) {
+					var target = event.target;
+					if (!target || typeof target.closest !== 'function') return;
+					if (!target.closest('#theme-toggle')) return;
+
+					var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+					try {
+						localStorage.setItem('theme', next);
+					} catch (error) {
+						// 存不了就算了，本次切换照常生效
+					}
+					apply(next);
+				});
+			})();
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
@@ -30,8 +84,6 @@ const isActive = (href: string) =>
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
-		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)" />
 	</head>
 	<body>
 		<header class="site-header">
@@ -50,6 +102,7 @@ const isActive = (href: string) =>
 						))
 					}
 				</nav>
+				<ThemeToggle />
 			</div>
 		</header>
 

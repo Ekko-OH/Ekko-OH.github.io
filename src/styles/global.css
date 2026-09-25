@@ -20,18 +20,18 @@
 	color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #0e1013;
-		--bg-subtle: #16191e;
-		--fg: #e7e9ee;
-		--fg-subtle: #9aa3b2;
-		--border: #272b33;
-		--link: #8ab4ff;
-		--link-hover: #c2d6ff;
-		--accent: #8ab4ff;
-		color-scheme: dark;
-	}
+/* 深色：脚本会把 data-theme="dark" 写到 <html> 上。
+   没有 data-theme 时（JS 被禁用）保持浅色。 */
+:root[data-theme='dark'] {
+	--bg: #0e1013;
+	--bg-subtle: #16191e;
+	--fg: #e7e9ee;
+	--fg-subtle: #9aa3b2;
+	--border: #272b33;
+	--link: #8ab4ff;
+	--link-hover: #c2d6ff;
+	--accent: #8ab4ff;
+	color-scheme: dark;
 }
 
 *,
@@ -86,7 +86,7 @@ a:hover {
 .header-inner {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: baseline;
+	align-items: center;
 	gap: 0.5rem 1.25rem;
 	padding-top: 1.1rem;
 	padding-bottom: 1.1rem;
@@ -123,6 +123,50 @@ a:hover {
 .nav-link.active {
 	color: var(--fg);
 	font-weight: 600;
+}
+
+/* ---------- 主题切换按钮 ---------- */
+
+.theme-toggle {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg-subtle);
+	color: var(--fg-subtle);
+	cursor: pointer;
+	line-height: 0;
+	transition:
+		color 0.15s ease,
+		border-color 0.15s ease;
+}
+
+.theme-toggle:hover {
+	color: var(--fg);
+	border-color: var(--fg-subtle);
+}
+
+.theme-toggle svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* 图标反映「点下去会变成什么」：浅色时显示月亮，深色时显示太阳 */
+.theme-toggle .icon-sun {
+	display: none;
+}
+
+:root[data-theme='dark'] .theme-toggle .icon-sun {
+	display: block;
+}
+
+:root[data-theme='dark'] .theme-toggle .icon-moon {
+	display: none;
 }
 
 main {
@@ -396,16 +440,14 @@ main {
 	padding: 0;
 }
 
-/* 双主题代码块：深色模式下切到 --shiki-dark 变量 */
-@media (prefers-color-scheme: dark) {
-	.prose .astro-code,
-	.prose .astro-code span {
-		color: var(--shiki-dark) !important;
-		background-color: var(--shiki-dark-bg) !important;
-		font-style: var(--shiki-dark-font-style) !important;
-		font-weight: var(--shiki-dark-font-weight) !important;
-		text-decoration: var(--shiki-dark-text-decoration) !important;
-	}
+/* 双主题代码块：深色下切到 --shiki-dark 变量 */
+:root[data-theme='dark'] .prose .astro-code,
+:root[data-theme='dark'] .prose .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 .prose table {

@@ -69,15 +69,34 @@ draft: true                      # 选填，草稿只在本地可见
 1. **图片**：Obsidian 的 `![[图片.png]]` 和相对路径在这里无效。把图片放进 `public/images/`，正文写 `![说明](/images/图片.png)`
 2. **嵌入笔记**：`![[另一篇笔记]]` 不会真的嵌入内容，只显示一行提示文字
 
+## 深浅色主题
+
+页头右上角的按钮手动切换，选择记在 `localStorage.theme` 里。
+
+| 情况 | 行为 |
+| --- | --- |
+| 没手动选过 | 跟随系统，系统切换时页面实时跟着变 |
+| 手动选过 | 一直用你选的，不再受系统影响 |
+
+实现上有两处要注意，改的时候别踩：
+
+1. 主题写在 `<html data-theme="light|dark">` 上，CSS 用的是 `:root[data-theme='dark']`，
+   **不是** `@media (prefers-color-scheme: dark)`。代码高亮的双主题切换也在那套选择器里。
+2. 决定主题的内联脚本必须留在 `<head>` 里、并且放在 `<meta name="theme-color">` 之后，
+   否则首屏会闪一下颜色（脚本找不到那个 meta 就没法更新浏览器地址栏配色）。
+
+按钮本身在 `src/components/ThemeToggle.astro`，只有图标和 DOM，逻辑都在 `BaseLayout.astro` 的内联脚本里。
+
 ## 站点配置
 
 | 想改什么 | 改哪里 |
 | --- | --- |
 | 站名、作者、简介、导航 | `src/site.config.ts` |
-| 配色（含深色模式） | `src/styles/global.css` 顶部的 CSS 变量 |
+| 配色（浅色 + 深色） | `src/styles/global.css` 顶部的 CSS 变量（`:root` 和 `:root[data-theme='dark']` 两块） |
 | 域名 | `astro.config.mjs` 的 `site` |
 | 关于页 | `src/pages/about.astro` |
-| 图标 | `public/favicon.svg`、`public/favicon.ico` |
+| 图标 | `public/favicon.svg` |
+| 主题切换按钮 | `src/components/ThemeToggle.astro` |
 
 ## 目录结构
 
