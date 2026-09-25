@@ -261,6 +261,14 @@ Inter 只覆盖拉丁字符，中文会继续往 `--font-sans` 后面的 PingFan
 
 实现见 `src/plugins/rehype-heading-anchor.mjs`，注册在 `astro.config.mjs` 的 `rehypePlugins`。
 
+锚点的定位有两个要点，改样式时别把其中任何一个去掉：
+
+- `position: absolute; left: -1.15em` —— 让它待在标题左侧的空白里，**不挤动标题文字**（悬浮前后标题的 x 坐标不变）。
+- `top: 50%; transform: translateY(-50%); line-height: 1` —— 和标题**垂直居中**。
+  只给 `left` 不给 `top` 的话，绝对定位元素会贴在行盒顶部，看起来比标题高半截。
+
+> 已知取舍：标题如果换行，`#` 会相对**整个标题块**居中，而不是贴着第一行。标题都很短，暂时不为这个特殊处理。
+
 > **写这个插件时必须知道的一件事**：Astro 的 `rehypeHeadingIds` 注册在**用户 rehype 插件之后**，
 > 所以插件跑的时候标题还没有 id，不能直接读 `node.properties.id`。
 > 好在它的逻辑是「已有 string 类型的 id 就不动」，所以插件自己用 `github-slugger`

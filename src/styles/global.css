@@ -593,10 +593,15 @@ main {
 	font-size: 1rem;
 }
 
-/* 悬浮标题时左侧浮现 #，点它就能跳到 / 复制该小节的链接 */
+/* 悬浮标题时左侧浮现 #，点它就能跳到 / 复制该小节的链接。
+   绝对定位是为了不挤动标题文字；translateY(-50%) 是为了和标题垂直居中 ——
+   只给 left 不给 top 的话它会贴在行盒顶部，看起来比标题高半截。 */
 .header-anchor {
 	position: absolute;
 	left: -1.15em;
+	top: 50%;
+	transform: translateY(-50%);
+	line-height: 1;
 	color: inherit;
 	font-weight: 700;
 	font-size: 0.85em;
