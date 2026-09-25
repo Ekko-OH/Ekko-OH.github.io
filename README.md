@@ -211,6 +211,33 @@ src/
 
 不用手动维护任何导航清单，加笔记它自己就出现。
 
+## 文字与链接
+
+**全站链接不用颜色区分**：继承正文颜色，用「下划线 + 加粗」表示；悬停时下划线加粗到 2px，也不变色。
+
+```css
+a {
+	color: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+```
+
+只有这几类结构性 / 装饰性链接例外，它们不加下划线：
+
+| 选择器 | 原因 |
+| --- | --- |
+| `.note-item` | 整块可点的卡片，下划线会外溢到里面的日期和摘要（下划线改加在 `.note-title` 上） |
+| `.nav-link` | 纯图标的顶部导航 |
+| `.brand` | 站名 |
+| `.tag` | 标签胶囊 |
+| `.tree-link` | 侧栏导航列表；当前页改用**加粗 + 2px 下划线**标识，不再用颜色 |
+
+- 目前**唯一还带颜色的文字**是 callout 的标题（按类型配色：warning 橙、tip 青、danger 红）和代码高亮。前者要改成单色的话，把 `.callout::before` 的 `color` 改成 `var(--fg)` 即可。
+- 想恢复彩色链接：把 `a` 里的 `color: inherit` 换成颜色变量，并在 `:root` 里补一个。
+
 ## 部署
 
 推送到 `main` 就自动部署，流程写在 `.github/workflows/deploy.yml`：

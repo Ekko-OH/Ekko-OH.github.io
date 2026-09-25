@@ -9,8 +9,6 @@
 	--fg: #18181b;
 	--fg-subtle: #5b6472;
 	--border: #e4e7ec;
-	--link: #1d4ed8;
-	--link-hover: #1e3a8a;
 	--accent: #1d4ed8;
 	--radius: 10px;
 	--maxw: 46rem;
@@ -29,8 +27,6 @@
 	--fg: #e7e9ee;
 	--fg-subtle: #9aa3b2;
 	--border: #272b33;
-	--link: #8ab4ff;
-	--link-hover: #c2d6ff;
 	--accent: #8ab4ff;
 	color-scheme: dark;
 }
@@ -194,8 +190,13 @@ body {
 	text-decoration: none;
 }
 
+/* 当前页：不用颜色，改用加粗 + 下划线 */
 .tree-link.active {
-	color: var(--accent);
+	color: var(--fg);
+	font-weight: 700;
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 3px;
 }
 
 .tree-count {
@@ -230,15 +231,31 @@ body:has(main:hover) .sidebar {
 	}
 }
 
+/* 链接：不用颜色区分 —— 继承正文颜色，改用「下划线 + 加粗」标记 */
 a {
-	color: var(--link);
-	text-decoration: none;
+	color: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
 }
 
+/* 悬停也不再变色，只把下划线加粗 */
 a:hover {
-	color: var(--link-hover);
-	text-decoration: underline;
-	text-underline-offset: 3px;
+	color: inherit;
+	text-decoration-thickness: 2px;
+}
+
+/* 结构性 / 装饰性链接不套用上面的文字装饰：
+   整块可点的卡片（下划线会外溢到里面的日期、摘要）、
+   纯图标的导航、站名、标签胶囊、侧栏导航列表 */
+.note-item,
+.nav-link,
+.brand,
+.tag,
+.tree-link {
+	font-weight: inherit;
+	text-decoration: none;
 }
 
 /* ---------- 页头 / 页脚 ---------- */
@@ -434,14 +451,18 @@ main {
 	text-decoration: none;
 }
 
-.note-item:hover .note-title {
-	color: var(--link);
-}
-
+/* 卡片整块可点，下划线只加在标题上，别外溢到日期和摘要 */
 .note-title {
 	font-weight: 600;
 	font-size: 1.02rem;
 	line-height: 1.5;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+.note-item:hover .note-title {
+	text-decoration-thickness: 2px;
 }
 
 .note-meta {
