@@ -3,10 +3,10 @@
  *
  * 照 antfu.me 的 ArtPlum（1.8KB，Vue 组件）用原生 JS 重写，无依赖。
  * 算法：从视口四条边各起一条，向内生长。每段长度 0~6px、方向抖动 ±15°，
- * 然后按概率分成两枝；每帧只推进待办队列里随机的一半，其余推到下一帧，
+ * 然后按概率分成两枝；每帧只推进待办队列里随机的一部分，其余推到下一帧，
  * 于是能看到枝条一帧一帧"抽"出来。队列空了就彻底停下，不空转。
  *
- * 三个容易写错的细节：
+ * 几个容易写错的细节：
  *
  * 1. 分叉概率用的那个「段数」不是每条路径各自的深度，而是**沿着一整棵子树共享**的
  *    计数器。前 30 段按 80% 分叉，之后一律 50% —— 之后每段平均只生出一个子枝
@@ -15,8 +15,8 @@
  * 2. 四个起点**各有各的计数器**（参考站里是默认参数 `a = { value: 0 }`，每个种子新建
  *    一次），也就是 4 × 30 段的高概率预算。全树共用一个的话会明显比参考站稀疏。
  * 3. 这是个「临界分支过程」，**有时会提前灭绝**——枝条全跑出画布，段数远没到上限
- *    就结束了，看起来就偏稀（实测三次能跑到 6948 / 24615 / 27973 像素，差 4 倍）。
- *    参考站也有这个特性。这里加了兜底：太稀就换个形状重画（见 MIN_SEGMENTS）。
+ *    就结束了，看起来就偏稀。兜底做法是**再补几个起点接着长**（见 settle）。
+ *    注意千万别用「清空重画」——那会让用户看到长到一半突然重来。
  */
 
 const STROKE_WIDTH = 1;
@@ -26,20 +26,35 @@ const YOUNG_SEGMENTS = 30; // 每棵子树前多少段享受更高的分叉概�
 const CHANCE_YOUNG = 0.8;
 const CHANCE_OLD = 0.5;
 const EDGE_BLEED = 100; // 出界超过这么多就停止生长
-const FRAME_INTERVAL = 25; // 帧节流，约 40fps，和参考站一致
+
+/**
+ * 生长速度由两个数决定：
+ *   - FRAME_INTERVAL：两帧至少间隔多少毫秒（帧率上限）
+ *   - DEFER_FRACTION：每帧把**多大比例**的待办推迟到下一帧处理 —— 越大越慢
+ *
+ * 参考站是 25ms / 0.5（一半推迟、一半执行），实测约 6~8 秒就长满，比它自己那种
+ * 慢吞吞长几十秒的观感快得多。这里用 40ms / 0.88：帧率还有 25fps、不至于一顿一顿，
+ * 但每帧只推进 12%，整体慢约 4 倍，接近参考站的节奏。
+ *
+ * 注意别把语义写反：`Math.random() < DEFER_FRACTION` 为真时是**推迟**，
+ * 所以这个数调小反而会变快。
+ */
+const FRAME_INTERVAL = 40;
+const DEFER_FRACTION = 0.88;
 
 /**
  * 段数上限。
  *
- * 参考站没有上限：实测它 50 秒时仍在生长（不透明像素 193k，是 20 秒时的 4 倍），
- * 也就是背景会一直变密、动画一直占着 CPU（要等所有枝条自然出界，而这个"灭绝时间"
- * 的尾巴很长）。这里主动收敛：画到这么多段就停，得到一个稳定、中等密度的背景。
+ * 参考站没有上限：它会画到所有枝条自然出界为止，实测 50 秒时仍在生长
+ * （不透明像素 193k）。这里主动收敛：画到这么多段就停，得到一个稳定、中等密度的背景
+ * ——实测参考站常见的收敛态约 30k 像素，和这个上限下的结果接近。
  * 想去掉上限就设成 Infinity。
  */
 const MAX_SEGMENTS = 9000;
-/** 低于这个段数就算"太稀"，换个形状重来（见文件头第 3 点） */
+/** 低于这个段数就算"太稀"，往边上补种继续长 */
 const MIN_SEGMENTS = 4500;
-const MAX_ATTEMPTS = 4;
+/** 补种次数上限，防止极端情况下反复补种 */
+const MAX_TOP_UPS = 6;
 /** 减少动效时一次性画完的保险阀 */
 const MAX_STEPS = 200000;
 
@@ -57,9 +72,9 @@ export function createPlumArt(canvas) {
 	let lastFrame = 0;
 	/** 已画段数：既用于封顶，也用于判断这棵树是不是太稀 */
 	let drawn = 0;
-	/** 当前这轮的颜色和重试次数，供 settle 使用 */
+	let topUps = 0;
+	/** 当前这轮的颜色，供重画/补种时复用 */
 	let stroke = '';
-	let attempt = 1;
 
 	function resize() {
 		const dpr = window.devicePixelRatio || 1;
@@ -96,11 +111,27 @@ export function createPlumArt(canvas) {
 		}
 	}
 
-	/** 生长结束后的收尾：太稀就换个形状重来 */
+	/** 第 edge 条边的起点（0=上 1=下 2=左 3=右），位置随机取 20%~80% */
+	function seedAt(edge) {
+		const at = () => Math.random() * 0.6 + 0.2;
+		if (edge === 0) return () => branch(at() * width, -5, Math.PI / 2, { count: 0 });
+		if (edge === 1) return () => branch(at() * width, height + 5, -Math.PI / 2, { count: 0 });
+		if (edge === 2) return () => branch(-5, at() * height, 0, { count: 0 });
+		return () => branch(width + 5, at() * height, Math.PI, { count: 0 });
+	}
+
+	/** 太稀时补种：随机挑两条边再加两个起点，接着长（不清空重画） */
+	function topUp() {
+		const edges = [0, 1, 2, 3].sort(() => Math.random() - 0.5).slice(0, 2);
+		queue.push(...edges.map((edge) => seedAt(edge)));
+	}
+
 	function settle() {
-		if (drawn < MIN_SEGMENTS && attempt < MAX_ATTEMPTS) {
-			start(stroke, attempt + 1);
-		}
+		if (drawn >= MIN_SEGMENTS || topUps >= MAX_TOP_UPS) return;
+		topUps += 1;
+		topUp();
+		lastFrame = performance.now();
+		raf = requestAnimationFrame(tick);
 	}
 
 	function tick(now) {
@@ -121,7 +152,7 @@ export function createPlumArt(canvas) {
 		for (const task of pending) {
 			// 一帧内的待办可能有上千条，这里也要判上限，否则每次跑出来的密度会差很多
 			if (drawn >= MAX_SEGMENTS) break;
-			if (Math.random() < 0.5) queue.push(task);
+			if (Math.random() < DEFER_FRACTION) queue.push(task);
 			else task();
 		}
 		raf = requestAnimationFrame(tick);
@@ -132,7 +163,7 @@ export function createPlumArt(canvas) {
 		raf = 0;
 	}
 
-	function start(color, nextAttempt = 1) {
+	function start(color) {
 		stop();
 		resize();
 		ctx.clearRect(0, 0, width, height);
@@ -140,25 +171,21 @@ export function createPlumArt(canvas) {
 		ctx.lineCap = 'round';
 		ctx.strokeStyle = color;
 		stroke = color;
-		attempt = nextAttempt;
 		drawn = 0;
+		topUps = 0;
 
-		// 起点在边长的 20%~80% 处，稍微画到视口外一点，好让枝条从边缘"长进来"。
-		// 每个起点一份独立的 state（见文件头第 2 点）
-		const at = () => Math.random() * 0.6 + 0.2;
-		const seed = (x, y, angle) => () => branch(x, y, angle, { count: 0 });
-		queue = [
-			seed(at() * width, -5, Math.PI / 2),
-			seed(at() * width, height + 5, -Math.PI / 2),
-			seed(-5, at() * height, 0),
-			seed(width + 5, at() * height, Math.PI),
-		];
 		// 窄屏只留上下两条，左右会太挤
-		if (width < 500) queue = queue.slice(0, 2);
+		const edges = width < 500 ? [0, 1] : [0, 1, 2, 3];
+		queue = edges.map((edge) => seedAt(edge));
 
 		if (reduceMotion) {
 			let guard = 0;
-			while (queue.length > 0 && guard < MAX_STEPS && drawn < MAX_SEGMENTS) {
+			while (guard < MAX_STEPS && drawn < MAX_SEGMENTS) {
+				if (queue.length === 0) {
+					if (drawn >= MIN_SEGMENTS || topUps >= MAX_TOP_UPS) break;
+					topUps += 1;
+					topUp();
+				}
 				const pending = queue;
 				queue = [];
 				for (const task of pending) {
@@ -168,7 +195,6 @@ export function createPlumArt(canvas) {
 					guard += 1;
 				}
 			}
-			settle();
 			return;
 		}
 
