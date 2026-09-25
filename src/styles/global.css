@@ -14,6 +14,7 @@
 	--accent: #1d4ed8;
 	--radius: 10px;
 	--maxw: 46rem;
+	--gutter: 1.25rem;
 	--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB',
 		'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 	--font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
@@ -58,11 +59,21 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
+/* 正文列：限制可读行宽，不随浏览器一起拉宽 */
 .wrap {
 	width: 100%;
 	max-width: var(--maxw);
 	margin: 0 auto;
-	padding: 0 1.25rem;
+	/* 只设左右内边距，不用简写，避免把 main 的 padding-bottom 覆盖掉 */
+	padding-left: var(--gutter);
+	padding-right: var(--gutter);
+}
+
+/* 页头 / 页脚：铺满整个浏览器宽度，只留左右留白 */
+.bar {
+	width: 100%;
+	padding-left: var(--gutter);
+	padding-right: var(--gutter);
 }
 
 a {

@@ -121,6 +121,7 @@ astro-icon 会用 svgo 自动优化；单色图标会被改写成 `currentColor`
 | --- | --- |
 | 站名、作者、简介、导航 | `src/site.config.ts` |
 | 配色（浅色 + 深色） | `src/styles/global.css` 顶部的 CSS 变量（`:root` 和 `:root[data-theme='dark']` 两块） |
+| 正文列宽 / 左右留白 | 同上，改 `--maxw`（默认 46rem）和 `--gutter`（默认 1.25rem） |
 | 域名 | `astro.config.mjs` 的 `site` |
 | 关于页 | `src/pages/about.astro` |
 | 图标 | `public/favicon.svg` |
@@ -147,6 +148,18 @@ src/
 │   └── tags/[...tag].astro  # 单个标签
 └── styles/global.css
 ```
+
+## 版式
+
+两类容器，别混用：
+
+| 类名 | 用途 | 行为 |
+| --- | --- | --- |
+| `.bar` | 页头、页脚 | 铺满整个浏览器宽度，只留左右 `--gutter` 的内边距 |
+| `.wrap` | `main` 正文列 | 限制在 `--maxw`（46rem）并居中，**不随浏览器拉宽** |
+
+笔记正文的实际行宽 = `--maxw` 减去两侧 `--gutter`，默认约 696px。想调阅读宽度就改 `--maxw`，
+页头页脚会一直保持通栏。
 
 ## 部署
 
