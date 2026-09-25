@@ -683,9 +683,12 @@ main {
 	border-radius: var(--radius);
 }
 
-/* 独占一段的图片居中显示。
-   用 :only-child 而不是直接给所有 img 加 display:block —— 万一日后把图片夹在
+/* 独占一段的图片居中显示。两种写法都要管：
+   - .prose > img      —— 直接用 <img> 写（markdown 里的裸 HTML，不会被包进 <p>）
+   - .prose p > img    —— markdown 图片语法 ![]()，会被包进 <p>
+   用 :only-child 限定而不是直接给所有 img 加 display:block —— 万一日后把图片夹在
    一句话中间写（"文字 ![图](x) 文字"），那条规则会把段落硬切成两截。 */
+.prose > img,
 .prose p > img:only-child {
 	display: block;
 	margin-left: auto;
