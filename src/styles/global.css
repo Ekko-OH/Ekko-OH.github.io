@@ -90,6 +90,8 @@ body {
 	margin: 0 auto;
 	padding-left: var(--gutter);
 	padding-right: var(--gutter);
+	/* 撑满剩余高度，把页脚顶到页面最底部（main 现在在里面，这行必须放这） */
+	flex: 1 0 auto;
 }
 
 /* 窄屏放不下侧栏：整棵树收起来，顶部那几个图标仍能导航 */
@@ -180,6 +182,32 @@ body {
 	font-size: 0.78rem;
 	opacity: 0.6;
 	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 自动隐藏：平时淡出，鼠标移上去或键盘聚焦才显示 ---------- */
+
+.header-actions,
+.sidebar {
+	opacity: 0;
+	transition: opacity 0.18s ease;
+}
+
+.site-header:hover .header-actions,
+.site-header:focus-within .header-actions {
+	opacity: 1;
+}
+
+.sidebar:hover,
+.sidebar:focus-within {
+	opacity: 1;
+}
+
+/* 触屏没有 hover，一律常显，否则导航就用不了了 */
+@media (hover: none) {
+	.header-actions,
+	.sidebar {
+		opacity: 1;
+	}
 }
 
 a {
@@ -312,7 +340,6 @@ a:hover {
 }
 
 main {
-	flex: 1 0 auto;
 	padding-bottom: 4rem;
 }
 
