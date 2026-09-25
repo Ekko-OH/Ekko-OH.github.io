@@ -325,16 +325,16 @@ a:hover {
 	height: 16px;
 }
 
-/* 图标反映「点下去会变成什么」：浅色时显示月亮，深色时显示太阳 */
-.theme-toggle .icon-sun {
+/* 图标反映「当前是什么状态」：白天显示太阳，夜晚显示月亮 */
+.theme-toggle .icon-moon {
 	display: none;
 }
 
-:root[data-theme='dark'] .theme-toggle .icon-sun {
+:root[data-theme='dark'] .theme-toggle .icon-moon {
 	display: block;
 }
 
-:root[data-theme='dark'] .theme-toggle .icon-moon {
+:root[data-theme='dark'] .theme-toggle .icon-sun {
 	display: none;
 }
 
