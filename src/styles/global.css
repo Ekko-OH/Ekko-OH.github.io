@@ -132,27 +132,28 @@ a:hover {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	/* 保留 2rem 的点击热区，但视觉上只是一个图标：无底色、无边框 */
 	width: 2rem;
 	height: 2rem;
 	padding: 0;
-	border: 1px solid var(--border);
-	border-radius: 8px;
-	/* 透明底：只要一圈描边，不要底下的浅色填充 */
-	background: transparent;
+	border: none;
+	background: none;
 	color: var(--fg-subtle);
 	cursor: pointer;
 	line-height: 0;
-	transition:
-		color 0.15s ease,
-		border-color 0.15s ease,
-		background-color 0.15s ease;
+	transition: color 0.15s ease;
 }
 
+/* 唯一的反馈是颜色变深，不再有底色或描边 */
 .theme-toggle:hover {
 	color: var(--fg);
-	border-color: var(--fg-subtle);
-	/* 悬停时才给一点底色作为反馈 */
-	background: var(--bg-subtle);
+}
+
+/* 鼠标用户看不到，键盘 Tab 聚焦时才出现，避免纯图标没法看出焦点在哪 */
+.theme-toggle:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: 6px;
 }
 
 /* 图标本体由 UnoCSS 的 presetIcons 生成（i-lucide-*），这里只管尺寸和显隐 */
