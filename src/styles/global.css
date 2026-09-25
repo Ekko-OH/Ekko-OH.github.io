@@ -683,6 +683,15 @@ main {
 	border-radius: var(--radius);
 }
 
+/* 独占一段的图片居中显示。
+   用 :only-child 而不是直接给所有 img 加 display:block —— 万一日后把图片夹在
+   一句话中间写（"文字 ![图](x) 文字"），那条规则会把段落硬切成两截。 */
+.prose p > img:only-child {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .prose hr {
 	border: none;
 	border-top: 1px solid var(--border);
