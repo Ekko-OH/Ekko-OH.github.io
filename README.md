@@ -1,7 +1,7 @@
 # me
 
 个人小站：学习笔记 + 项目记录。
-线上地址：<https://seekingthemoon.github.io>
+线上地址：<https://ekko-oh.github.io>
 
 用 [Astro](https://astro.build) 构建，纯静态，托管在 GitHub Pages。
 写笔记就是往 `src/content/notes/` 里丢 Markdown 文件，`git push` 之后大约一分钟自动上线。
@@ -402,7 +402,7 @@ push to main → [build] astro build → 上传 dist/ → [deploy] 发布到 Git
 
 仓库 **Settings → Pages** 的 Source 必须是 **GitHub Actions**（不是某个分支）。
 
-为什么仓库叫 `seekingtheMoon.github.io`：GitHub Pages 只在 `<用户名>.github.io` 这个仓库名上把站点发布到根路径，
+为什么仓库叫 `Ekko-OH.github.io`：GitHub Pages 只在 `<用户名>.github.io` 这个仓库名上把站点发布到根路径，
 其他名字会挂在 `/<仓库名>/` 子路径下，站内那些 `/notes/xxx/` 绝对链接就会全部 404。
 
 ## 两个已知的坑

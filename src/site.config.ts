@@ -8,7 +8,7 @@ export const SITE = {
 	tagline: '学习笔记与项目记录',
 	author: 'Ekko',
 	description: '个人的学习笔记与技术记录。',
-	url: 'https://seekingthemoon.github.io',
+	url: 'https://ekko-oh.github.io',
 } as const;
 
 /**

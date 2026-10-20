@@ -9,8 +9,8 @@ import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 
 // https://astro.build/config
 export default defineConfig({
-	// 部署在 https://seekingthemoon.github.io （用户主页仓库，根路径，不需要 base）
-	site: 'https://seekingthemoon.github.io',
+	// 部署在 https://ekko-oh.github.io （用户主页仓库，根路径，不需要 base）
+	site: 'https://ekko-oh.github.io',
 	// 图标：<Icon name="lucide:moon" />，图标集来自 @iconify-json/lucide。
 	// 本站是静态输出，不用配 include（那个选项是给 output: 'server' 控制服务端打包体积用的）。
 	integrations: [icon()],
