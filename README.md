@@ -518,6 +518,25 @@ Astro 把编译好的 HTML 存进 `data-store.json`，公式在构建期就已�
 > 隐藏 MathML（内容是 LaTeX 源码），会一起被算进 slug。实测 `## 当 $x^2$ 出现在标题里`
 > 生成的 id 是 `当-x2x2x2-出现在标题里`。
 
+## 代码块复制
+
+每个代码块右上角有个「复制」按钮：脚本在 `src/scripts/code-copy.js`，
+样式在 `global.css` 的「代码块复制按钮」一段，由笔记页的 `<script>` 调用 `initCodeCopy()`。
+
+它是在浏览器里给 `<pre>` 包一层 `.code-block` 再加按钮的，不是构建期的组件——
+正文由 markdown 渲染，构建期没有地方能拿到「每个 `<pre>` 的插槽」。
+
+| 做法 | 为什么 |
+| --- | --- |
+| 按钮放在 `<pre>` 外面 | `<pre>` 有 `overflow-x: auto`，按钮在里面会跟着横向滚动跑掉；更要紧的是 `<pre>` 的 `textContent` 会把按钮上的「复制」一起算进复制内容 |
+| 包过的 `pre` 多留 `padding-right: 3.2rem` | 长行换行后不会从按钮底下钻过去。只给被脚本包过的块加，没有 JS 时不白丢这块宽度 |
+| 按钮常驻 0.7 不透明度，悬停 / 键盘聚焦提到 1 | 只在 hover 时才出现的话，没人发现得了这个功能；触屏没有 hover，`@media (hover: none)` 里提到 0.9 |
+| 复制的是 `code.textContent` 去掉**末尾**空行 | 中间的空行是代码的一部分，不能动；末尾那个换行是 markdown 结尾带出来的，留着粘出去会多一空行 |
+
+复制成功按钮变青（`--c-teal`）显示「已复制」，1.6 秒后复原；失败变琥珀色（`--c-amber`）显示「复制失败」。
+写剪贴板优先用 `navigator.clipboard`，在非安全上下文（比如局域网用 `http://` 打开）里它不存在，
+会降级到 `textarea + execCommand`。
+
 ## 部署
 
 推送到 `main` 就自动部署，流程写在 `.github/workflows/deploy.yml`：

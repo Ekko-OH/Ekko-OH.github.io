@@ -107,7 +107,10 @@ const graphHref = `/graph/?focus=${encodeURIComponent(note.id)}`;
 	</article>
 
 	<script>
+		import { initCodeCopy } from '../../scripts/code-copy.js';
 		import { initMermaid } from '../../scripts/mermaid.js';
+
 		initMermaid();
+		initCodeCopy();
 	</script>
 </BaseLayout>

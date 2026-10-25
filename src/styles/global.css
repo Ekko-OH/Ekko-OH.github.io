@@ -764,6 +764,95 @@ main {
 	text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
+/* ---------- 代码块复制按钮（脚本见 src/scripts/code-copy.js） ---------- */
+
+/* 外面这层容器有两个用途：
+   - 给按钮一个定位参照。按钮不能放进 <pre> 里：pre 有 overflow-x: auto，
+     横向滚动时按钮会跟着滚出可视区；而且 <pre> 的 textContent 会把按钮文字一起复制走。
+   - 接管代码块的下边距，免得容器和 pre 各留一份。 */
+.prose .code-block {
+	position: relative;
+	margin: 0 0 1.1rem;
+}
+
+/* 右边留出按钮的位置，长行不会从按钮底下钻过去。
+   只给被脚本包过的块加，没 JS 时不会白丢一块宽度。 */
+.prose .code-block > pre {
+	margin: 0;
+	padding-right: 3.2rem;
+}
+
+.code-copy {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.45rem;
+	padding: 0.1rem 0.4rem;
+	font-family: var(--font-sans);
+	font-size: 0.7rem;
+	line-height: 1.6;
+	color: var(--fg-subtle);
+	background: rgba(255, 255, 255, 0.86);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	cursor: pointer;
+	/* 半透明常驻：完全不显示的话没人发现得了；太实又会挡住第一行代码 */
+	opacity: 0.7;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	transition:
+		opacity 0.15s ease,
+		color 0.15s ease,
+		border-color 0.15s ease;
+}
+
+/* 深色下代码底是 Shiki 的 #24292e，用同色系的半透明白提亮一点，
+   再配一道更亮的描边——否则按钮和代码底糊成一片，只剩几个字浮着 */
+:root[data-theme='dark'] .code-copy {
+	background: rgba(255, 255, 255, 0.07);
+	border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* 鼠标进到代码块里就把按钮提亮到实色，提示「这里可以点」；
+   只靠按钮自身 :hover 的话，得先精准移到它上面才知道能按。 */
+.code-block:hover .code-copy,
+.code-copy:hover,
+.code-copy:focus-visible {
+	opacity: 1;
+	color: var(--fg);
+}
+
+.code-copy:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* 状态色带一层 .prose .code-block 提优先级：否则鼠标停在代码块上时，
+   .code-block:hover .code-copy 的 color: var(--fg) 会把「已复制」的青色盖掉 */
+.prose .code-block .code-copy[data-state='done'] {
+	opacity: 1;
+	color: var(--c-teal);
+	border-color: color-mix(in srgb, var(--c-teal) 45%, var(--border));
+}
+
+.prose .code-block .code-copy[data-state='error'] {
+	opacity: 1;
+	color: var(--c-amber);
+	border-color: color-mix(in srgb, var(--c-amber) 45%, var(--border));
+}
+
+/* 触屏没有 hover，按钮得一直看得见（0.7 在手机屏上偏淡，提一档） */
+@media (hover: none) {
+	.code-copy {
+		opacity: 0.9;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.code-copy {
+		transition: none;
+	}
+}
+
 .prose table {
 	width: 100%;
 	border-collapse: collapse;
