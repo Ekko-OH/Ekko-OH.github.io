@@ -5,6 +5,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeHeadingAnchor from './src/plugins/rehype-heading-anchor.mjs';
+import remarkMermaid from './src/plugins/remark-mermaid.mjs';
 import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 
 // https://astro.build/config
@@ -21,7 +22,8 @@ export default defineConfig({
 		processor: unified({
 			// remarkMath 要排在 remarkObsidian 前面：先把 $…$ 变成 math 节点，
 			// 后面那个改写文本节点的插件就不会去动公式里的内容了。
-			remarkPlugins: [remarkMath, remarkObsidian],
+			// remarkMermaid 放在最前：先把 ```mermaid 换成容器，别让 Shiki 高亮它。
+			remarkPlugins: [remarkMath, remarkMermaid, remarkObsidian],
 			// rehypeKatex 用宽松模式：公式里出现中文（如 $好 = F(今天, 天气, 真)$）
 			// KaTeX 默认会报错，strict:false 让它照常渲染而不是炸掉构建。
 			rehypePlugins: [[rehypeKatex, { strict: false, throwOnError: false }], rehypeHeadingAnchor],

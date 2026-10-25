@@ -19,6 +19,7 @@ export const SITE = {
 export const NAV = [
 	{ href: '/', label: '首页', icon: 'lucide:house' },
 	{ href: '/notes/', label: '笔记', icon: 'lucide:notebook-pen' },
+	{ href: '/graph/', label: '知识图谱', icon: 'lucide:network' },
 	{ href: '/tags/', label: '标签', icon: 'lucide:tag' },
 	{ href: '/about/', label: '关于', icon: 'lucide:user' },
 ] as const;

@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import NoteCard from '../../components/NoteCard.astro';
-import { collectTags, getNotes, type Note } from '../../lib/notes';
+import { collectTags, getHumanNotes, type Note } from '../../lib/notes';
 
 export async function getStaticPaths() {
-	const notes = await getNotes();
+	const notes = await getHumanNotes();
 	return collectTags(notes).map(({ tag, count }) => ({
 		params: { tag },
 		props: { tag, count, items: notes.filter((note) => note.data.tags.includes(tag)) },

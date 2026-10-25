@@ -1,23 +1,27 @@
 ---
 import type { Note } from '../lib/notes';
-import { noteHref } from '../lib/notes';
+import { noteHref, ROLE_LABELS } from '../lib/notes';
 import FormattedDate from './FormattedDate.astro';
 
 interface Props {
 	note: Note;
+	/** Agent 整理区不展示标签，避免链到只属于个人笔记的标签页 */
+	showTags?: boolean;
 }
 
-const { note } = Astro.props;
-const { title, date, description, tags } = note.data;
+const { note, showTags = true } = Astro.props;
+const { title, date, description, tags, role, source } = note.data;
 ---
 
 <li>
-	<a class="note-item" href={noteHref(note.id)}>
+	<a class="note-item" href={noteHref(note)}>
 		<div class="note-title">{title}</div>
 		<div class="note-meta">
+			<span class:list={['role-badge', `role-${role}`]}>{ROLE_LABELS[role]}</span>
+			{source === 'agent' && <span class="agent-badge">Agent</span>}
 			<FormattedDate date={date} />
 			{
-				tags.length > 0 && (
+				showTags && tags.length > 0 && (
 					<span>
 						{tags.map((tag) => `#${tag}`).join(' ')}
 					</span>

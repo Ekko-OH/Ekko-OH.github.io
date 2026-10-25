@@ -10,6 +10,10 @@
 	--fg-subtle: #5b6472;
 	--border: #e4e7ec;
 	--accent: #1d4ed8;
+	/* 图表里少量点缀色，和正文的克制配色保持一致 */
+	--c-teal: #0f766e;
+	--c-amber: #b45309;
+	--c-violet: #6d28d9;
 	/* 梅枝描边色（参考站写死的是 #88888825，这里拆成明暗两套） */
 	--art-stroke: rgba(136, 136, 136, 0.145);
 	--radius: 10px;
@@ -33,6 +37,9 @@
 	--fg-subtle: #9aa3b2;
 	--border: #272b33;
 	--accent: #8ab4ff;
+	--c-teal: #2dd4bf;
+	--c-amber: #fbbf24;
+	--c-violet: #a78bfa;
 	--art-stroke: rgba(198, 204, 214, 0.16);
 	color-scheme: dark;
 }
@@ -905,4 +912,1210 @@ a.wikilink {
 	.note-header h1 {
 		font-size: 1.45rem;
 	}
+}
+
+/* ============================================================
+   技术书：主线 / 专题 / 模型
+   ============================================================ */
+
+/* 角色徽标：出现在笔记页标题下、列表卡片和反向链接里 */
+.role-badge {
+	display: inline-flex;
+	align-items: center;
+	height: 1.35rem;
+	padding: 0 0.45rem;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--bg-subtle);
+	color: var(--fg-subtle);
+	font-size: 0.7rem;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.role-badge.role-overview {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.role-badge.role-model {
+	border-color: var(--c-teal);
+	color: var(--c-teal);
+}
+
+.note-meta .role-badge {
+	margin-right: 0.1rem;
+}
+
+/* 总览页顶部的三层阅读地图 */
+.book-map {
+	display: grid;
+	gap: 0.55rem;
+	margin: 1.4rem 0 2.2rem;
+}
+
+.book-map-row {
+	display: grid;
+	grid-template-columns: 4rem minmax(0, 1fr);
+	gap: 0.9rem;
+	align-items: start;
+	padding: 0.75rem 0.9rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.book-map-label {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 1.5rem;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--bg);
+	color: var(--fg-subtle);
+	font-size: 0.72rem;
+	line-height: 1;
+}
+
+.book-map-row:first-child .book-map-label {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.book-map-body {
+	font-size: 0.9rem;
+	line-height: 1.7;
+}
+
+.book-map-body strong {
+	font-weight: 500;
+}
+
+.book-map-body a + a::before {
+	content: ' · ';
+	color: var(--fg-subtle);
+	font-weight: 400;
+}
+
+/* ---------- 架构演进图（HTML，不依赖图片，自动跟随深浅色） ---------- */
+
+.arch-figure {
+	margin: 1.8rem 0;
+}
+
+.arch-canvas {
+	overflow-x: auto;
+	padding: 1.15rem 0.9rem 1rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.arch-row {
+	display: flex;
+	align-items: center;
+	gap: 0.42rem;
+	min-width: max-content;
+}
+
+.arch-row + .arch-row {
+	margin-top: 0.65rem;
+}
+
+.arch-node {
+	position: relative;
+	flex: 0 0 auto;
+	min-width: 5.4rem;
+	padding: 0.5rem 0.6rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg);
+	text-align: center;
+	line-height: 1.35;
+}
+
+.arch-node strong {
+	display: block;
+	font-size: 0.84rem;
+	font-weight: 500;
+}
+
+.arch-node small {
+	display: block;
+	margin-top: 0.15rem;
+	color: var(--fg-subtle);
+	font-size: 0.7rem;
+}
+
+.arch-node.is-new {
+	border-color: var(--accent);
+}
+
+.arch-node.is-new::after {
+	content: '新增';
+	position: absolute;
+	top: -0.55rem;
+	right: 0.35rem;
+	padding: 0 0.3rem;
+	border-radius: 3px;
+	background: var(--accent);
+	color: var(--bg);
+	font-size: 0.6rem;
+	line-height: 1.2;
+}
+
+/* 第二行是「某个部件的内部」，用一条虚线和一个标签和主流程区分开 */
+.arch-label {
+	flex: 0 0 auto;
+	width: 4.2rem;
+	margin-right: 0.15rem;
+	padding-right: 0.55rem;
+	border-right: 1px dashed var(--border);
+	color: var(--fg-subtle);
+	font-size: 0.72rem;
+	line-height: 1.3;
+	text-align: right;
+}
+
+.arch-arrow {
+	position: relative;
+	flex: 0 0 auto;
+	width: 1.05rem;
+	height: 1px;
+	background: var(--fg-subtle);
+	opacity: 0.45;
+}
+
+.arch-arrow::after {
+	content: '';
+	position: absolute;
+	top: -2.5px;
+	right: 0;
+	border-top: 3px solid transparent;
+	border-bottom: 3px solid transparent;
+	border-left: 5px solid var(--fg-subtle);
+}
+
+.arch-stack {
+	display: grid;
+	gap: 0.25rem;
+	flex: 0 0 auto;
+	padding: 0.35rem;
+	border: 1px dashed var(--border);
+	border-radius: 8px;
+}
+
+.arch-layer {
+	padding: 0.18rem 0.5rem;
+	border: 1px solid var(--border);
+	border-radius: 5px;
+	background: var(--bg);
+	font-size: 0.72rem;
+	text-align: center;
+}
+
+.arch-figure figcaption,
+.prose figure figcaption {
+	margin-top: 0.55rem;
+	color: var(--fg-subtle);
+	font-size: 0.82rem;
+	line-height: 1.65;
+}
+
+.prose figure {
+	margin: 1.6rem 0;
+}
+
+/* ---------- 笔记关联（反向链接 / 出链） ---------- */
+
+.note-links {
+	margin-top: 3.5rem;
+	padding-top: 1.4rem;
+	border-top: 1px solid var(--border);
+}
+
+.note-links-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.note-links-head h2 {
+	margin: 0;
+	color: var(--fg-subtle);
+	font-size: 0.82rem;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+}
+
+.note-links-graph {
+	font-size: 0.82rem;
+	color: var(--fg-subtle);
+}
+
+.note-links-cols {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.5rem 2rem;
+	margin-top: 1rem;
+}
+
+.note-links-col h3 {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0 0 0.45rem;
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+	font-weight: 500;
+}
+
+.note-links-count {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.6;
+}
+
+.note-links ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.note-links li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.22rem 0;
+	font-size: 0.92rem;
+}
+
+.note-links .role-badge {
+	height: 1.2rem;
+	padding: 0 0.38rem;
+	font-size: 0.64rem;
+}
+
+.note-links-empty {
+	margin: 0;
+	color: var(--fg-subtle);
+	font-size: 0.86rem;
+	font-style: italic;
+}
+
+.note-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+/* ---------- 笔记列表上的「知识图谱」入口 ---------- */
+
+.page-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.2rem;
+	margin: -0.7rem 0 1.4rem;
+	font-size: 0.88rem;
+}
+
+/* ============================================================
+   知识图谱
+   ============================================================ */
+
+.wrap-wide {
+	max-width: 60rem;
+}
+
+.graph-header {
+	margin-bottom: 1.4rem;
+}
+
+.graph-header .page-title {
+	margin-bottom: 0.5rem;
+}
+
+.graph-header .page-subtitle {
+	margin: 0 0 0.8rem;
+}
+
+.graph-hint {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	color: var(--fg-subtle);
+	font-size: 0.85rem;
+}
+
+.graph-hint svg {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+}
+
+.graph-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.7rem 1.1rem;
+	margin-bottom: 0.8rem;
+}
+
+.graph-search {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.28rem 0.7rem;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--bg-subtle);
+	color: var(--fg-subtle);
+}
+
+.graph-search:focus-within {
+	border-color: var(--fg-subtle);
+}
+
+.graph-search svg {
+	width: 0.95rem;
+	height: 0.95rem;
+	flex: 0 0 auto;
+}
+
+.graph-search input {
+	width: 10rem;
+	border: 0;
+	outline: 0;
+	background: none;
+	color: var(--fg);
+	font: inherit;
+	font-size: 0.86rem;
+}
+
+.graph-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.9rem;
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+}
+
+.graph-legend span {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.graph-dot {
+	display: inline-block;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 50%;
+	background: var(--fg-subtle);
+}
+
+.graph-dot.role-overview {
+	background: var(--accent);
+}
+
+.graph-dot.role-model {
+	background: var(--c-teal);
+}
+
+.graph-stats {
+	margin-left: auto;
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.graph-stage {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background-color: var(--bg-subtle);
+	background-image: radial-gradient(rgba(127, 127, 127, 0.18) 1px, transparent 1px);
+	background-size: 22px 22px;
+}
+
+.graph-svg {
+	display: block;
+	width: 100%;
+	height: min(68vh, 38rem);
+	min-height: 24rem;
+	touch-action: none;
+	user-select: none;
+	cursor: grab;
+}
+
+.graph-svg:active {
+	cursor: grabbing;
+}
+
+.graph-status {
+	position: absolute;
+	left: 0.75rem;
+	bottom: 0.75rem;
+	max-width: calc(100% - 4.5rem);
+	overflow: hidden;
+	padding: 0.32rem 0.6rem;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg);
+	color: var(--fg-subtle);
+	font-size: 0.78rem;
+	line-height: 1.5;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.graph-controls {
+	position: absolute;
+	top: 0.65rem;
+	right: 0.65rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+}
+
+.graph-controls button {
+	display: grid;
+	place-items: center;
+	width: 1.9rem;
+	height: 1.9rem;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg);
+	color: var(--fg-subtle);
+	font: inherit;
+	font-size: 0.9rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.graph-controls button:hover {
+	color: var(--fg);
+	border-color: var(--fg-subtle);
+}
+
+.graph-node {
+	cursor: pointer;
+	outline: none;
+}
+
+.graph-node-hit {
+	fill: transparent;
+}
+
+.graph-node-halo {
+	fill: var(--accent);
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.graph-node:hover .graph-node-halo,
+.graph-node:focus-visible .graph-node-halo,
+.graph-node.is-active .graph-node-halo {
+	opacity: 0.09;
+}
+
+.graph-node-dot {
+	fill: var(--bg);
+	stroke: var(--fg-subtle);
+	stroke-width: 1.5;
+	transition: stroke 0.15s ease, fill 0.15s ease;
+}
+
+.graph-node.role-overview .graph-node-dot {
+	stroke: var(--accent);
+	stroke-width: 2.4;
+}
+
+.graph-node.role-model .graph-node-dot {
+	stroke: var(--c-teal);
+	stroke-width: 2;
+}
+
+.graph-node-label {
+	fill: var(--fg-subtle);
+	font-size: 11px;
+	text-anchor: middle;
+	font-weight: 500;
+	paint-order: stroke;
+	stroke: var(--bg-subtle);
+	stroke-width: 3px;
+	stroke-linejoin: round;
+	transition: fill 0.15s ease;
+}
+
+.graph-node:hover .graph-node-label,
+.graph-node:focus-visible .graph-node-label,
+.graph-node.is-active .graph-node-label {
+	fill: var(--fg);
+}
+
+.graph-link {
+	stroke: var(--fg-subtle);
+	stroke-width: 1.2;
+	opacity: 0.28;
+	transition: stroke 0.15s ease, opacity 0.15s ease;
+}
+
+.graph-node.is-dim {
+	opacity: 0.2;
+}
+
+.graph-node.is-neighbour .graph-node-dot {
+	stroke: var(--fg);
+}
+
+.graph-node.is-active .graph-node-dot {
+	fill: var(--accent);
+	stroke: var(--accent);
+}
+
+.graph-link.is-dim {
+	opacity: 0.12;
+}
+
+.graph-link.is-active {
+	stroke: var(--accent);
+	stroke-width: 1.8;
+	opacity: 0.95;
+}
+
+.graph-node.is-filtered {
+	opacity: 0.08;
+}
+
+/* ============================================================
+   专题文章里的小图表
+   ============================================================ */
+
+/* 位置编码：三条不同波长的正弦曲线（示意） */
+.pe-plot {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.pe-axis {
+	stroke: var(--border);
+	stroke-width: 1;
+}
+
+.pe-wave {
+	fill: none;
+	stroke-width: 1.8;
+}
+
+.pe-wave-1 {
+	stroke: var(--accent);
+}
+
+.pe-wave-2 {
+	stroke: var(--c-teal);
+}
+
+.pe-wave-3 {
+	stroke: var(--c-amber);
+}
+
+.pe-plot text {
+	fill: var(--fg-subtle);
+	font-size: 11px;
+	font-family: var(--font-sans);
+}
+
+.pe-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-top: 0.4rem;
+	color: var(--fg-subtle);
+	font-size: 0.78rem;
+}
+
+.pe-legend span {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.pe-legend i {
+	display: inline-block;
+	width: 1.1rem;
+	height: 2px;
+	border-radius: 1px;
+}
+
+.pe-legend .pe-key-1 {
+	background: var(--accent);
+}
+
+.pe-legend .pe-key-2 {
+	background: var(--c-teal);
+}
+
+.pe-legend .pe-key-3 {
+	background: var(--c-amber);
+}
+
+/* Softmax：logits → 概率的柱状图 */
+.prob-chart {
+	display: flex;
+	gap: 0.8rem;
+	padding: 1rem 1rem 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.prob-col {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.prob-track {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	width: 100%;
+	height: 9rem;
+}
+
+.prob-bar {
+	display: block;
+	width: min(3rem, 70%);
+	min-height: 2px;
+	border-radius: 4px 4px 2px 2px;
+	background: var(--accent);
+	opacity: 0.8;
+}
+
+.prob-col.is-muted .prob-bar {
+	background: var(--fg-subtle);
+	opacity: 0.35;
+}
+
+.prob-label {
+	padding-bottom: 0.6rem;
+	color: var(--fg-subtle);
+	font-size: 0.78rem;
+	line-height: 1.35;
+	text-align: center;
+}
+
+.prob-label small {
+	display: block;
+	font-variant-numeric: tabular-nums;
+	opacity: 0.8;
+}
+
+/* 因果掩码：3×3 的可见性表格 */
+.mask-grid {
+	display: grid;
+	grid-template-columns: 3.4rem repeat(3, 2.4rem);
+	gap: 3px;
+	width: max-content;
+	margin: 1rem 0;
+	font-size: 0.78rem;
+}
+
+.mask-cell {
+	display: grid;
+	place-items: center;
+	min-height: 1.8rem;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	background: var(--bg);
+	color: var(--fg-subtle);
+	font-variant-numeric: tabular-nums;
+}
+
+.mask-head {
+	border: 0;
+	background: none;
+	color: var(--fg-subtle);
+	font-weight: 500;
+}
+
+.mask-cell.is-blocked {
+	background: var(--bg-subtle);
+	color: var(--fg-subtle);
+	opacity: 0.35;
+}
+
+.mask-cell.is-open {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+/* Transformer 块：残差 + 子层 */
+.tblock {
+	margin: 1.5rem 0;
+	padding: 1rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.tblock-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.3rem 0;
+}
+
+.tblock-box {
+	padding: 0.32rem 0.6rem;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg);
+	font-size: 0.82rem;
+}
+
+.tblock-box.is-accent {
+	border-color: var(--accent);
+}
+
+.tblock-arrow {
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+}
+
+.tblock-add {
+	display: grid;
+	place-items: center;
+	width: 1.55rem;
+	height: 1.55rem;
+	border: 1px solid var(--accent);
+	border-radius: 50%;
+	color: var(--accent);
+	font-size: 0.8rem;
+}
+
+.tblock-residual {
+	padding-left: 0.55rem;
+	border-left: 1px dashed var(--border);
+	color: var(--fg-subtle);
+	font-size: 0.76rem;
+}
+
+/* GPT / BERT：两栏对照 */
+.model-split {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	margin: 1.5rem 0;
+}
+
+.model-card {
+	padding: 0.9rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.model-card h4 {
+	margin: 0 0 0.35rem;
+	font-size: 0.95rem;
+	font-weight: 500;
+}
+
+.model-card p {
+	margin: 0;
+	color: var(--fg-subtle);
+	font-size: 0.84rem;
+}
+
+.model-flow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem;
+	margin-top: 0.6rem;
+	font-size: 0.72rem;
+}
+
+.model-flow span {
+	padding: 0.15rem 0.4rem;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	background: var(--bg);
+}
+
+/* 箭头只是分隔符，不要跟流程节点长成一样的胶囊 */
+.model-flow span:nth-child(even) {
+	padding: 0 0.1rem;
+	border: 0;
+	background: none;
+	color: var(--fg-subtle);
+}
+
+@media (max-width: 680px) {
+	.note-links-cols {
+		grid-template-columns: 1fr;
+		gap: 1.1rem;
+	}
+
+	.model-split {
+		grid-template-columns: 1fr;
+	}
+
+	.graph-stats {
+		margin-left: 0;
+	}
+
+	.graph-svg {
+		height: 62vh;
+		min-height: 22rem;
+	}
+}
+
+/* ---------- Mermaid ---------- */
+
+/* 代码块在客户端渲染前先以等宽文本显示；渲染完成后被 <svg> 替换 */
+.mermaid {
+	margin: 1.6rem 0;
+	overflow-x: auto;
+	text-align: center;
+}
+
+.mermaid svg {
+	max-width: 100%;
+	height: auto;
+}
+
+.mermaid:not(.mermaid-rendered) {
+	padding: 1rem;
+	border: 1px dashed var(--border);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+	color: var(--fg-subtle);
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	line-height: 1.6;
+	text-align: left;
+	white-space: pre-wrap;
+}
+
+.mermaid.mermaid-error {
+	border-color: var(--c-amber);
+}
+
+/* ---------- 笔记总览页的三层结构 ---------- */
+
+.page-lede {
+	max-width: 40rem;
+	margin: -0.5rem 0 1.2rem;
+	color: var(--fg-subtle);
+	font-size: 0.92rem;
+	line-height: 1.7;
+}
+
+.note-group {
+	margin-top: 2.8rem;
+}
+
+.note-group .section-head {
+	margin-bottom: 0.25rem;
+}
+
+.note-group .section-head h2 {
+	font-size: 1.25rem;
+	font-weight: 500;
+}
+
+.note-group-count {
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.note-group-hint {
+	max-width: 40rem;
+	margin: 0 0 0.4rem;
+	color: var(--fg-subtle);
+	font-size: 0.86rem;
+	line-height: 1.6;
+}
+
+/* 组标题已经说明了层级，卡片里的角色徽标就不再重复 */
+.note-group .note-meta .role-badge {
+	display: none;
+}
+
+/* ---------- Agent 整理区 ---------- */
+
+.agent-badge {
+	display: inline-flex;
+	align-items: center;
+	height: 1.35rem;
+	padding: 0 0.45rem;
+	border: 1px dashed var(--c-amber);
+	border-radius: 999px;
+	color: var(--c-amber);
+	font-size: 0.68rem;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.note-group-agent {
+	margin-top: 4rem;
+	padding-top: 1.5rem;
+	border-top: 1px dashed var(--border);
+}
+
+.note-group-agent .section-head h2 {
+	color: var(--c-amber);
+}
+
+.note-group-empty {
+	margin: 0.4rem 0 0;
+	color: var(--fg-subtle);
+	font-size: 0.86rem;
+	font-style: italic;
+}
+
+.agent-notice {
+	margin: 0 0 2rem;
+	padding: 0.8rem 0.95rem;
+	border: 1px solid var(--c-amber);
+	border-radius: var(--radius);
+	background: var(--bg-subtle);
+}
+
+.agent-notice strong {
+	display: block;
+	margin-bottom: 0.2rem;
+	color: var(--c-amber);
+	font-size: 0.86rem;
+	font-weight: 500;
+}
+
+.agent-notice p {
+	margin: 0;
+	color: var(--fg-subtle);
+	font-size: 0.86rem;
+	line-height: 1.6;
+}
+
+/* 指向 Agent 材料的双链：用琥珀色虚线下划线区分，避免和个人笔记混淆 */
+a.wikilink-agent {
+	color: var(--c-amber);
+	text-decoration-style: dashed;
+}
+
+/* ---------- 图谱里的 Agent 材料 ---------- */
+
+.graph-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+	cursor: pointer;
+}
+
+.graph-toggle input {
+	accent-color: var(--c-amber);
+}
+
+.graph-size {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: var(--fg-subtle);
+	font-size: 0.8rem;
+}
+
+.graph-size input {
+	width: 5.5rem;
+	accent-color: var(--accent);
+}
+
+.graph-node.source-agent .graph-node-dot {
+	stroke: var(--c-amber);
+}
+
+.graph-node.source-agent .graph-node-label {
+	fill: var(--c-amber);
+}
+
+.graph-node.source-agent.is-active .graph-node-dot {
+	fill: var(--c-amber);
+	stroke: var(--c-amber);
+}
+
+.graph-node.is-hidden,
+.graph-link.is-hidden {
+	display: none;
+}
+
+/* 实心 = 自己写的；空心虚线 = Agent 整理 */
+.graph-node.source-human.role-overview .graph-node-dot {
+	fill: var(--accent);
+	stroke: var(--accent);
+}
+
+.graph-node.source-human.role-topic .graph-node-dot {
+	fill: var(--fg-subtle);
+	stroke: var(--fg-subtle);
+}
+
+.graph-node.source-human.role-model .graph-node-dot {
+	fill: var(--c-teal);
+	stroke: var(--c-teal);
+}
+
+.graph-node.source-human .graph-node-label {
+	fill: var(--fg);
+}
+
+.graph-node.source-human.is-active .graph-node-dot {
+	fill: var(--accent);
+	stroke: var(--accent);
+}
+
+.graph-node.source-agent .graph-node-halo {
+	fill: var(--c-amber);
+}
+
+.graph-node.source-agent .graph-node-dot {
+	stroke-width: 1.8;
+}
+
+.graph-dot.graph-dot-agent {
+	background: transparent;
+	border: 1.5px solid var(--c-amber);
+}
+
+/* ---------- 选中节点后的相连节点面板 ---------- */
+
+.graph-selection {
+	position: absolute;
+	top: 0.65rem;
+	left: 0.65rem;
+	z-index: 2;
+	width: min(15rem, 65%);
+	max-height: calc(100% - 5.5rem);
+	overflow: auto;
+	padding: 0.65rem 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	font-size: 0.78rem;
+}
+
+.graph-selection[hidden] {
+	display: none;
+}
+
+.graph-selection-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.graph-selection-head strong {
+	font-size: 0.85rem;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.graph-selection-close {
+	display: inline-grid;
+	place-items: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--fg-subtle);
+	opacity: 0.45;
+	font: inherit;
+	font-size: 0.9rem;
+	line-height: 1;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.graph-selection-close:hover {
+	color: var(--fg-subtle);
+	opacity: 0.8;
+}
+
+.graph-selection-close:focus-visible {
+	outline: 1px solid var(--border);
+	outline-offset: 2px;
+	opacity: 0.9;
+}
+
+.graph-selection-meta {
+	margin: 0.2rem 0 0.45rem;
+	color: var(--fg-subtle);
+	font-size: 0.74rem;
+}
+
+.graph-selection-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.graph-selection-link {
+	padding: 0.12rem 0;
+	border: 0;
+	background: none;
+	color: var(--fg-subtle);
+	font: inherit;
+	font-size: 0.78rem;
+	text-align: left;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 2px;
+	cursor: pointer;
+}
+
+.graph-selection-link:hover {
+	color: var(--fg);
+	text-decoration-thickness: 2px;
+}
+
+.graph-selection-link.is-agent {
+	color: var(--c-amber);
+}
+
+.graph-selection-empty {
+	color: var(--fg-subtle);
+	font-style: italic;
+}
+
+.graph-selection-open {
+	display: inline-block;
+	margin-top: 0.5rem;
+	font-size: 0.78rem;
 }

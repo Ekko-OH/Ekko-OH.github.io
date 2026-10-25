@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # 本地预览截图
 .preview/
+
+# Obsidian 同步状态（本地缓存，可重新生成）
+.obsidian-sync.json

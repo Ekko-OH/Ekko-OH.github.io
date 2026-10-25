@@ -1,0 +1,55 @@
+---
+import { noteHref, ROLE_LABELS, type Note } from '../lib/notes';
+
+interface Props {
+	/** 链接到当前这篇的笔记 */
+	backlinks: Note[];
+	/** 当前这篇链接到的笔记 */
+	outgoing: Note[];
+	/** 当前笔记在图谱里的定位地址 */
+	graphHref: string;
+}
+
+const { backlinks, outgoing, graphHref } = Astro.props;
+
+const columns = [
+	{ key: 'backlinks', title: '链接到这里', notes: backlinks },
+	{ key: 'outgoing', title: '从这里出发', notes: outgoing },
+] as const;
+---
+
+<section class="note-links" aria-labelledby="note-links-title">
+	<div class="note-links-head">
+		<h2 id="note-links-title">关联笔记</h2>
+		<a class="note-links-graph" href={graphHref}>在知识图谱中查看 →</a>
+	</div>
+
+	<div class="note-links-cols">
+		{
+			columns.map((column) => (
+				<div class="note-links-col">
+					<h3>
+						{column.title}
+						<span class="note-links-count">{column.notes.length}</span>
+					</h3>
+					{column.notes.length > 0 ? (
+						<ul>
+							{column.notes.map((item) => (
+								<li>
+									<a href={noteHref(item)}>{item.data.title}</a>
+									<span class:list={['role-badge', `role-${item.data.role}`]}>
+										{ROLE_LABELS[item.data.role]}
+									</span>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p class="note-links-empty">
+							{column.key === 'backlinks' ? '还没有其他笔记链接到这里。' : '这篇还没有链到别的笔记。'}
+						</p>
+					)}
+				</div>
+			))
+		}
+	</div>
+</section>

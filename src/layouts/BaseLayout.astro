@@ -13,9 +13,11 @@ interface Props {
 	description?: string;
 	/** 当前页面的分节目录；不传或为空就不渲染左侧栏 */
 	toc?: { depth: number; slug: string; text: string }[];
+	/** 需要更宽画布的页面（知识图谱）用，正文列放宽到 60rem */
+	wide?: boolean;
 }
 
-const { title, description = SITE.description, toc = [] } = Astro.props;
+const { title, description = SITE.description, toc = [], wide = false } = Astro.props;
 const hasToc = toc.length > 0;
 const year = new Date().getFullYear();
 const pageTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} · ${SITE.tagline}`;
@@ -124,7 +126,7 @@ const isActive = (href: string) =>
 
 		<div class:list={['shell', { 'shell-with-toc': hasToc }]}>
 			{hasToc && <Sidebar toc={toc} />}
-			<main class="wrap">
+			<main class:list={['wrap', { 'wrap-wide': wide }]}>
 				<slot />
 			</main>
 		</div>

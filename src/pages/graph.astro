@@ -1,0 +1,86 @@
+---
+import { Icon } from 'astro-icon/components';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getNoteGraph, ROLE_LABELS } from '../lib/notes';
+
+const graph = await getNoteGraph({ includeAgent: true });
+const payload = {
+	nodes: graph.nodes,
+	links: graph.edges,
+	roleLabels: ROLE_LABELS,
+};
+const hasLinks = graph.edges.length > 0;
+const description = `把 ${graph.nodes.length} 篇文章按双向链接连起来：自己的笔记用实心圆点，Agent 整理用琥珀色空心圆点。`;
+---
+
+<BaseLayout title="知识图谱" description={description} wide>
+	<header class="graph-header">
+		<h1 class="page-title">知识图谱</h1>
+		<p class="page-subtitle">{description}</p>
+		<p class="graph-hint">
+			<Icon name="lucide:mouse-pointer-2" aria-hidden="true" />
+			悬停看邻居，点击选中并列出所有相连节点，双击或面板按钮打开笔记；拖动节点整理布局，滚轮缩放，工具栏「节点」滑杆可调大小。每条线来自正文里的双链，节点大小按连接数；勾选「只看我的笔记」可隐藏 Agent。
+		</p>
+	</header>
+
+	<div class="graph-toolbar">
+		<label class="graph-search">
+			<Icon name="lucide:search" aria-hidden="true" />
+			<input id="graph-search" type="search" placeholder="筛选笔记…" autocomplete="off" />
+		</label>
+
+		<div class="graph-legend" aria-label="图例">
+			<span><i class="graph-dot role-overview"></i>总览</span>
+			<span><i class="graph-dot role-topic"></i>专题</span>
+			<span><i class="graph-dot role-model"></i>模型</span>
+			<span><i class="graph-dot graph-dot-agent"></i>Agent</span>
+		</div>
+
+		<label class="graph-toggle">
+			<input id="graph-hide-agent" type="checkbox" />
+			只看我的笔记
+		</label>
+
+		<label class="graph-size">
+			<span>节点</span>
+			<input id="graph-size" type="range" min="0.35" max="1.35" step="0.05" value="0.85" aria-label="节点大小" />
+		</label>
+
+		<span class="graph-stats" data-graph-stats>{graph.nodes.length} 篇 · {graph.edges.length} 条链接</span>
+	</div>
+
+	{
+		hasLinks ? (
+			<div class="graph-stage" data-graph-stage>
+				<svg id="note-graph" class="graph-svg" role="group" aria-label="笔记之间的链接图"></svg>
+				<div class="graph-controls" aria-label="缩放控制">
+					<button type="button" data-graph-action="in" aria-label="放大" title="放大">+</button>
+					<button type="button" data-graph-action="out" aria-label="缩小" title="缩小">−</button>
+					<button type="button" data-graph-action="reset" aria-label="重置视图" title="重置视图">↺</button>
+				</div>
+				<div class="graph-status" data-graph-status aria-live="polite">
+					把鼠标移到节点上，看看它和谁相连。
+				</div>
+				<div class="graph-selection" data-graph-selection aria-label="相连节点" hidden>
+					<div class="graph-selection-head">
+						<strong data-graph-selection-title></strong>
+						<button type="button" class="graph-selection-close" data-graph-selection-close aria-label="取消选择">×</button>
+					</div>
+					<p class="graph-selection-meta" data-graph-selection-meta></p>
+					<ul class="graph-selection-list" data-graph-selection-list></ul>
+					<a class="graph-selection-open" data-graph-selection-open href="#">打开笔记 →</a>
+				</div>
+			</div>
+		) : (
+			<p class="empty">还没有链接。在正文里写 [[另一篇笔记]] 就会出现连线。</p>
+		)
+	}
+
+	<script is:inline define:vars={{ payload }}>
+		window.__NOTE_GRAPH__ = payload;
+	</script>
+	<script>
+		import { initNoteGraph } from '../scripts/note-graph.js';
+		initNoteGraph();
+	</script>
+</BaseLayout>

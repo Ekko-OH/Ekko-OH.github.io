@@ -9,12 +9,14 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "sync": "node scripts/sync-obsidian.mjs",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.1",
     "astro": "^7.3.5",
-    "github-slugger": "^2.0.0"
+    "github-slugger": "^2.0.0",
+    "mermaid": "^12.2.0"
   },
   "allowScripts": {
     "esbuild": true

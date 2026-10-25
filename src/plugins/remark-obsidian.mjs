@@ -2,15 +2,20 @@
  * 处理从 Obsidian 复制过来的两种专有语法，避免它们原样显示成
  * "[[某某笔记]]" 和 "> [!note]" 这种噪音。
  *
- * 1. [[笔记名]] / [[笔记名|显示文字]]  →  指向 /notes/<slug>/ 的链接
- *    slug 用 github-slugger 计算，和 Astro 生成笔记 id 的算法一致，
- *    所以只要目标笔记存在，链接就能点到。
+ * 1. [[笔记名]] / [[笔记名|显示文字]] / [[笔记名#小节]]  →  指向笔记的链接
+ *    解析顺序见 src/lib/wikilinks.mjs：文件名、标题、slug、aliases 都认。
+ *    找不到目标时仍然生成链接，但加 .wikilink-missing，样式上是虚线下划线。
  * 2. > [!note] 标题            →  带样式的 callout 块
  *    （样式在 src/styles/global.css 里，按 data-callout 区分颜色）
  *
- * 纯本地实现，只依赖 github-slugger。
+ * 索引在每次渲染时重建（按文件 mtime 缓存），所以 dev 里新建笔记、
+ * 改标题之后不用重启也能正确解析。
  */
 import GithubSlugger from 'github-slugger';
+import { fileURLToPath } from 'node:url';
+import { createResolver, loadNoteIndex, noteUrl } from '../lib/wikilinks.mjs';
+
+const NOTES_DIR = fileURLToPath(new URL('../content/notes', import.meta.url));
 
 /** 没写标题时，每种 callout 的默认标题 */
 const DEFAULT_TITLES = {
@@ -35,13 +40,14 @@ const DEFAULT_TITLES = {
 	cite: '引用',
 };
 
-/** 和 Astro 生成 content id 用的算法保持一致 */
+/** 只用来给「目标还不存在」的链接猜一个地址 */
 function slugify(value) {
 	return new GithubSlugger().slug(value.trim());
 }
 
 const CALLOUT_MARKER = /^\[!([A-Za-z]+)\]([+-]?)[ \t]*/;
-const WIKILINK = /(!?)\[\[([^[\]|]+)(?:\|([^[\]]+))?\]\]/g;
+const WIKILINK = /(!?)\[\[([^[\]\n]+?)\]\]/g;
+const IMAGE_FILE = /\.(png|jpe?g|gif|webp|svg|avif|pdf)$/i;
 
 /**
  * 把一个段落按第一个软换行拆成「第一行」和「剩余部分」。
@@ -148,41 +154,117 @@ function transformCallout(node) {
 	return true;
 }
 
-/** 把 text 节点里的 [[wikilink]] 替换成链接节点 */
-function transformTextNode(node) {
-	const value = node.value;
-	WIKILINK.lastIndex = 0;
-	if (!WIKILINK.test(value)) return null;
-	WIKILINK.lastIndex = 0;
+/** 把一条 [[wikilink]] 变成链接节点 */
+function wikiLinkNode({ bang, target, heading, alias, resolver }) {
+	const label = alias?.trim() || (heading ? `${target} › ${heading}` : target);
+	const headingSlug = heading ? new GithubSlugger().slug(heading) : '';
 
+	// 图片附件：静态站里没有 Obsidian 的附件目录，老老实实显示成提示
+	if (bang === '!' && IMAGE_FILE.test(target)) {
+		return { type: 'text', value: `（附件：${label}）` };
+	}
+
+	const hit = resolver(target);
+	const url = hit ? noteUrl(hit.path, headingSlug) : noteUrl(slugify(target), headingSlug);
+	const classes = ['wikilink'];
+	if (!hit) classes.push('wikilink-missing');
+	if (hit?.source === 'agent') classes.push('wikilink-agent');
+	if (bang === '!') classes.push('wikilink-embed');
+
+	return {
+		type: 'link',
+		url,
+		title: hit ? (hit.source === 'agent' ? 'Agent 整理' : null) : `笔记「${target}」还不存在`,
+		data: { hProperties: { className: classes } },
+		children: [{ type: 'text', value: bang === '!' ? `↳ ${label}` : label }],
+	};
+}
+
+function escapeHtml(value) {
+	return String(value)
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;');
+}
+
+/**
+ * 裸 HTML 块（例如 <div class="book-map">）里的文字是 html 节点，
+ * 不经过 Markdown 的行内解析，所以 [[双链]] 需要在这里单独换掉。
+ */
+function wikiLinkHtml(full, bang, inner, resolver) {
+	const [targetPart, alias] = inner.split('|');
+	const [target, heading] = targetPart.split('#');
+	const clean = target.trim();
+	if (!clean) return full;
+
+	const label = alias?.trim() || (heading ? `${clean} › ${heading.trim()}` : clean);
+	if (bang === '!' && IMAGE_FILE.test(clean)) {
+		return `（附件：${escapeHtml(label)}）`;
+	}
+
+	const headingSlug = heading ? new GithubSlugger().slug(heading.trim()) : '';
+	const hit = resolver(clean);
+	const url = hit ? noteUrl(hit.path, headingSlug) : noteUrl(slugify(clean), headingSlug);
+	const classes = ['wikilink'];
+	if (!hit) classes.push('wikilink-missing');
+	if (hit?.source === 'agent') classes.push('wikilink-agent');
+	if (bang === '!') classes.push('wikilink-embed');
+	const title = hit
+		? hit.source === 'agent'
+			? ' title="Agent 整理"'
+			: ''
+		: ` title="笔记「${escapeHtml(clean)}」还不存在"`;
+
+	return `<a href="${url}" class="${classes.join(' ')}"${title}>${escapeHtml(
+		bang === '!' ? `↳ ${label}` : label,
+	)}</a>`;
+}
+
+function transformHtmlNode(node, resolver) {
+	if (typeof node.value !== 'string' || !node.value.includes('[[')) return node;
+	const value = node.value.replace(WIKILINK, (full, bang, inner) => wikiLinkHtml(full, bang, inner, resolver));
+	return { ...node, value };
+}
+
+/** 把 text 节点里的 [[wikilink]] 替换成链接节点 */
+function transformTextNode(node, resolver) {
+	const value = node.value;
+	if (!value.includes('[[')) return null;
+
+	WIKILINK.lastIndex = 0;
 	const result = [];
 	let lastIndex = 0;
 	let match;
 
 	while ((match = WIKILINK.exec(value)) !== null) {
-		const [full, bang, target, alias] = match;
+		const [full, bang, inner] = match;
 		if (match.index > lastIndex) {
 			result.push({ type: 'text', value: value.slice(lastIndex, match.index) });
 		}
 
-		const label = (alias ?? target).trim();
+		const [targetPart, alias] = inner.split('|');
+		const [target, heading] = targetPart.split('#');
 
-		if (bang === '!') {
-			// 附件嵌入（![[图片.png]]）在静态站里没有对应文件，降级成纯文字提示
-			result.push({ type: 'text', value: `（附件：${label}）` });
+		if (!target.trim()) {
+			// [[#同页小节]]：保持原样
+			result.push({ type: 'text', value: full });
 		} else {
-			result.push({
-				type: 'link',
-				url: `/notes/${encodeURI(slugify(target))}/`,
-				title: null,
-				data: { hProperties: { className: ['wikilink'] } },
-				children: [{ type: 'text', value: label }],
-			});
+			result.push(
+				wikiLinkNode({
+					bang,
+					target: target.trim(),
+					heading: heading?.trim(),
+					alias,
+					resolver,
+				}),
+			);
 		}
 
 		lastIndex = match.index + full.length;
 	}
 
+	if (result.length === 0) return null;
 	if (lastIndex < value.length) {
 		result.push({ type: 'text', value: value.slice(lastIndex) });
 	}
@@ -191,27 +273,37 @@ function transformTextNode(node) {
 }
 
 /** 手动深度优先遍历，避免额外依赖 unist-util-visit */
-function walk(node, visit) {
+function walk(node, visit, resolver) {
 	if (!node || typeof node !== 'object' || !Array.isArray(node.children)) return;
 
 	node.children = node.children.flatMap((child) => {
 		if (child?.type === 'text') {
-			const replaced = transformTextNode(child);
+			const replaced = transformTextNode(child, resolver);
 			return replaced ?? [child];
+		}
+		if (child?.type === 'html') {
+			return [transformHtmlNode(child, resolver)];
 		}
 		return [child];
 	});
 
 	for (const child of node.children) {
 		visit(child);
-		walk(child, visit);
+		walk(child, visit, resolver);
 	}
 }
 
 export default function remarkObsidian() {
 	return (tree) => {
-		walk(tree, (node) => {
-			if (node.type === 'blockquote') transformCallout(node);
-		});
+		// 每次渲染都取一次：mtime 没变时内部直接命中缓存
+		const resolver = createResolver(loadNoteIndex(NOTES_DIR));
+
+		walk(
+			tree,
+			(node) => {
+				if (node.type === 'blockquote') transformCallout(node);
+			},
+			resolver,
+		);
 	};
 }

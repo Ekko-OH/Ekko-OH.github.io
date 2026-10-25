@@ -2,10 +2,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NoteCard from '../components/NoteCard.astro';
 import { SITE } from '../site.config';
-import { getNotes } from '../lib/notes';
+import { getHumanNotes } from '../lib/notes';
 
-const notes = await getNotes();
-const recent = notes.slice(0, 5);
+const notes = await getHumanNotes();
+const overview = notes.find((note) => note.data.role === 'overview');
+const recent = notes.filter((note) => note.id !== overview?.id).slice(0, 5);
 ---
 
 <BaseLayout>
@@ -14,14 +15,28 @@ const recent = notes.slice(0, 5);
 		<p>{SITE.description}</p>
 	</section>
 
+	{
+		overview && (
+			<section class="section">
+				<div class="section-head">
+					<h2>从总览开始</h2>
+					<a href="/graph/">知识图谱 →</a>
+				</div>
+				<ul class="note-list">
+					<NoteCard note={overview} />
+				</ul>
+			</section>
+		)
+	}
+
 	<section class="section">
 		<div class="section-head">
 			<h2>最近更新</h2>
-			<a href="/notes/">全部 {notes.length} 篇 →</a>
+			<a href="/notes/">个人笔记 {notes.length} 篇 →</a>
 		</div>
 		{
 			recent.length === 0 ? (
-				<p class="empty">还没有笔记。在 <code>src/content/notes/</code> 下新建一个 .md 文件即可。</p>
+				<p class="empty">还没有新的专题或模型笔记。去 Obsidian 写一篇，加 <code>publish: true</code> 后同步过来。</p>
 			) : (
 				<ul class="note-list">
 					{recent.map((note) => (

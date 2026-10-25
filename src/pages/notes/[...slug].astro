@@ -1,13 +1,21 @@
 ---
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Backlinks from '../../components/Backlinks.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
-import { getNotes, tagHref, type Note } from '../../lib/notes';
+import {
+	getNoteGraph,
+	getNotes,
+	notePath,
+	ROLE_LABELS,
+	tagHref,
+	type Note,
+} from '../../lib/notes';
 
 export async function getStaticPaths() {
 	const notes = await getNotes();
 	return notes.map((note) => ({
-		params: { slug: note.id },
+		params: { slug: notePath(note) },
 		props: { note },
 	}));
 }
@@ -18,10 +26,25 @@ interface Props {
 
 const { note } = Astro.props;
 const { Content, headings } = await render(note);
-const { title, date, updated, tags, description } = note.data;
+const { title, date, updated, tags, description, role, source } = note.data;
+const isAgent = source === 'agent';
 // 交给 BaseLayout 渲染成左侧栏的目录（不再在正文里重复放一份）
 const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const isUpdated = updated && updated.valueOf() !== date.valueOf();
+
+// Agent 材料不参与个人知识图谱，也不显示反向链接
+const graph = isAgent ? null : await getNoteGraph();
+const backlinks = graph
+	? (graph.backlinks.get(note.id) ?? [])
+			.map((id) => graph.byId.get(id))
+			.filter((item): item is Note => Boolean(item))
+	: [];
+const outgoing = graph
+	? (graph.outgoing.get(note.id) ?? [])
+			.map((id) => graph.byId.get(id))
+			.filter((item): item is Note => Boolean(item))
+	: [];
+const graphHref = `/graph/?focus=${encodeURIComponent(note.id)}`;
 ---
 
 <BaseLayout
@@ -34,6 +57,10 @@ const isUpdated = updated && updated.valueOf() !== date.valueOf();
 			<h1>{title}</h1>
 			{description && <p class="page-subtitle">{description}</p>}
 			<div class="note-meta">
+				<span class:list={['role-badge', `role-${role}`]} title="这篇笔记在整本书里的位置">
+					{ROLE_LABELS[role]}
+				</span>
+				{isAgent && <span class="agent-badge">Agent</span>}
 				<FormattedDate date={date} />
 				{isUpdated && <span>更新于 <FormattedDate date={updated} /></span>}
 				{
@@ -42,7 +69,7 @@ const isUpdated = updated && updated.valueOf() !== date.valueOf();
 							{tags.map((tag, index) => (
 								<>
 									{index > 0 && ' '}
-									<a href={tagHref(tag)}>#{tag}</a>
+									{isAgent ? `#${tag}` : <a href={tagHref(tag)}>#{tag}</a>}
 								</>
 							))}
 						</span>
@@ -51,12 +78,36 @@ const isUpdated = updated && updated.valueOf() !== date.valueOf();
 			</div>
 		</header>
 
+		{
+			isAgent && (
+				<div class="agent-notice" role="note">
+					<strong>Agent 整理</strong>
+					<p>这篇由 Agent 收集/整理，作为参考资料保留；不是我的个人笔记，也不计入个人知识图谱。</p>
+				</div>
+			)
+		}
+
 		<div class="prose">
 			<Content />
 		</div>
 
+		{!isAgent && (backlinks.length > 0 || outgoing.length > 0) && (
+			<Backlinks backlinks={backlinks} outgoing={outgoing} graphHref={graphHref} />
+		)}
+
 		<footer class="note-footer">
-			<a href="/notes/">← 返回全部笔记</a>
+			{
+				isAgent ? (
+					<a href="/notes/#agent">← 返回 Agent 整理</a>
+				) : (
+					<a href="/notes/">← 返回全部笔记</a>
+				)
+			}
 		</footer>
 	</article>
+
+	<script>
+		import { initMermaid } from '../../scripts/mermaid.js';
+		initMermaid();
+	</script>
 </BaseLayout>

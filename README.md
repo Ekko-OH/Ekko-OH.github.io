@@ -31,7 +31,70 @@ npm run preview  # 预览构建产物
 
 ## 加一篇笔记
 
-在 `src/content/notes/` 下新建 `.md` 文件，**文件名去掉扩展名就是网址**：
+正式流程：**写在 Obsidian，再同步到博客**。`src/content/notes/` 是发布副本，不建议长期在两处同时改。
+
+### 从 Obsidian 同步
+
+在笔记 frontmatter 里加发布属性：
+
+```yaml
+---
+publish: true
+blog_slug: 语言模型问题定义和架构   # 选填：博客文件名/网址；不写就用标题
+blog_tags: [语言模型, 架构]        # 选填：博客标签
+blog_description: 一句话摘要        # 选填
+blog_order: 0                    # 选填：同组阅读顺序，总览一般 0
+agent: false                     # 选填：true 表示 Agent 整理，会放进单独的 Agent 区
+---
+```
+
+然后运行：
+
+```sh
+npm run sync
+```
+
+默认读取 `~/i/Obsidian-Cloud/卡片盒`；换路径用环境变量：
+
+```sh
+OBSIDIAN_DIR="/path/to/卡片盒" npm run sync
+```
+
+脚本会：
+
+| 层级 | vault 里放哪 |
+| --- | --- |
+| 总览 / 地图 | `4 结构`（一个系列一篇，负责阅读顺序和链接） |
+| 专题 | `3 永久`（一个概念一篇） |
+| 模型 | `3 永久`（具体架构的实例和比较） |
+
+> `LLM 总览` 已挪到 `4 结构`，和专题在 `3 永久` 分开。
+
+- `创建` → `date`，`更新` → `updated`
+- 标题 / `type` → `role`（`overview` / `topic` / `model`）
+- `blog_order` → `order`，决定同组里的阅读顺序（不写就按日期倒序）
+- `agent: true` → `source: agent`，放进「Agent 整理」区，不混入个人笔记
+  Agent 材料不进入个人笔记的反向链接和标签页；图谱页默认把全部文章画在一起，Agent 用琥珀色虚线标出，也可以勾选「只看我的笔记」隐藏。
+- 把 `assets/` 里的图片复制到 `public/images/obsidian/<笔记>/`，并改写正文路径
+- `[[#小节]]` → 同页锚点，`[[其他笔记]]` 保留给双链插件
+- 去掉正文里与标题重复的 H1
+- 给生成文件加 `<!-- synced:obsidian ... -->` 标记；取消 `publish` 后下次同步会删除副本
+
+`src/content/notes/` 里带这个 marker 的文件不要手改，下次同步会覆盖。同步状态记在 `.obsidian-sync.json`（已忽略，可重新生成）。
+
+同步后把 `src/content/notes/` 和 `public/images/obsidian/` 一起提交；GitHub Actions 上不需要 vault。
+
+> 仓库里已有的 7 篇演示文章已标记为 `source: agent`，归到「Agent 整理」区；vault 里同名的个人笔记发布后会覆盖它们，并回到总览 / 专题 / 模型。
+
+> 目前只处理 `assets/` 里的普通图片（PNG/JPG/SVG 等）；Excalidraw、Canvas 这类画布先导出成图片再嵌入笔记。
+
+### Mermaid 架构图
+
+笔记里的 mermaid 代码块会由客户端按需加载 Mermaid 渲染，支持深浅色切换重绘；没有 Mermaid 的页面不会加载 mermaid 本体。
+
+### 直接写 `src/content/notes`（临时/演示）
+
+也可以直接放 `.md` 文件，适合临时页面或还没进 Obsidian 的草稿。**文件名去掉扩展名就是网址**：
 
 | 文件名 | 网址 |
 | --- | --- |
@@ -51,27 +114,55 @@ date: 2026-09-25                 # 必填，列表按它倒序排
 updated: 2026-10-01              # 选填
 tags: [操作系统, 内存]             # 选填，会生成 /tags/ 页面
 draft: true                      # 选填，草稿只在本地可见
+role: topic                      # 选填：overview 总览 / topic 专题 / model 模型
+source: human                    # 选填：human 自己写 / agent 整理
+order: 1                         # 选填：同组阅读顺序
+aliases: [别名一, 别名二]          # 选填，[[别名]] 也能链过来
 ---
 ```
 
 字段缺失或类型写错会**在构建时报错**，不会静默漏掉一篇笔记。
 
-### 从 Obsidian 复制笔记
+### 双链、反向链接和知识图谱
 
-`src/plugins/remark-obsidian.mjs` 处理了两种语法：
+`src/plugins/remark-obsidian.mjs` 处理两种语法：
 
-- `[[某篇笔记]]`、`[[某篇笔记|显示文字]]` → 指向 `/notes/某篇笔记/` 的链接
-  （用 `github-slugger` 计算 slug，和 Astro 生成笔记 id 的算法一致）
+- `[[某篇笔记]]`、`[[某篇笔记|显示文字]]`、`[[某篇笔记#小节]]` → 指向那篇笔记的链接
 - `> [!note] 标题` callout → 带配色的提示块，见 `src/styles/global.css` 里的 `[data-callout=...]`
 
-需要手动改的两处：
+双链的解析规则在 `src/lib/wikilinks.mjs`，按这个顺序找目标：
 
-1. **图片**：Obsidian 的 `![[图片.png]]` 和相对路径在这里无效。把图片放进 `public/images/`，正文写 `![说明](/images/图片.png)`。
+1. 完整路径（`os/memory`，可带子目录）
+2. 文件名
+3. `title`（所以 `[[Softmax 与采样]]` 能找到 `Softmax与采样.md`）
+4. `slug`
+5. `aliases`
+
+找不到时链接仍然会生成，但加 `.wikilink-missing`（虚线下划线 + 悬停提示），不会静默变成一个死链。裸 HTML 块（比如总览里的 `.book-map`）里的 `[[双链]]` 也会被处理。
+
+每篇笔记页脚会自动出现两块内容：
+
+- **链接到这里**：所有链到这篇的笔记（反向链接）
+- **从这里出发**：这篇链到的笔记
+
+数据来自 `src/lib/notes.ts` 的 `getNoteGraph()`，它读 Markdown 原文（跳过代码块），所以 `[[双链]]` 和 `/notes/...` 两种写法都算。同一份数据也喂给 `/graph/` 的力导向图：节点大小按连接数（工具栏滑杆可调），悬停高亮邻居，点击选中并列出所有相连节点（双击或面板按钮打开笔记），支持拖动、滚轮缩放和搜索。实心圆点是个人笔记，空心圆点是 Agent 材料，可勾选「只看我的笔记」隐藏 Agent。图谱的客户端逻辑在 `src/scripts/note-graph.js`，不依赖第三方库。
+
+`role` 只影响展示（徽标和图谱配色），不参与链接解析：
+
+| role | 含义 | 图谱颜色 |
+| --- | --- | --- |
+| `overview` | 主线 | 蓝（accent） |
+| `topic` | 专题 | 灰 |
+| `model` | 具体模型 | 青 |
+
+直接写 `src/content/notes` 时需要手动处理的两处：
+
+1. **图片**：把图片放进 `public/images/`，正文写 `![说明](/images/图片.png)`。从 Obsidian 同步时不用管这一步，脚本会自动复制 `assets/` 并改写路径。
    - **独占一段的图片会自动居中**，`![]()` 和裸 `<img>` 两种写法都覆盖；夹在句子中间的图仍保持行内，不会把段落切断
    - **Obsidian 的缩放必须保留**：markdown 的图片语法表达不了缩放，所以带 `style="zoom:67%;"` 的图片
      要保持 `<img src="/images/x.png" alt="…" style="zoom:67%;" />` 这种裸 HTML 写法，
      **别顺手改成 `![]()`** —— 那样缩放就丢了（这个坑踩过一次）
-2. **嵌入笔记**：`![[另一篇笔记]]` 不会真的嵌入内容，只显示一行提示文字
+2. **嵌入**：`![[另一篇笔记]]` 不会真的嵌入内容，只会变成指向那篇笔记的链接；`![[图片.png]]` 在同步时会被转成真正的图片，直接写博客时则会显示成一行附件提示。
 
 ## 深浅色主题
 
@@ -136,22 +227,33 @@ astro-icon 会用 svgo 自动优化；单色图标会被改写成 `currentColor`
 ```text
 src/
 ├── content.config.ts        # 笔记集合的 schema（frontmatter 字段定义）
-├── content/notes/           # ← 笔记都在这里
+├── content/notes/           # ← 发布副本（同步生成 + 手写草稿）
 ├── icons/                   # 自己的 SVG 放这里，用 <Icon name="local:xxx" />
 ├── layouts/BaseLayout.astro # 全站骨架：head、页头、侧栏+正文网格、页脚
-├── components/              # 笔记卡片、日期、主题切换按钮、侧栏目录树
-├── lib/notes.ts             # 取笔记、排序、标签、分组的公共逻辑
-├── scripts/art-plum.js      # 梅枝背景（canvas，无依赖）
-├── plugins/remark-obsidian.mjs  # Obsidian 语法适配
+├── components/              # 笔记卡片、日期、主题切换按钮、侧栏目录树、反向链接
+├── lib/
+│   ├── notes.ts             # 取笔记、排序、标签、分组、链接图 / 反向链接
+│   └── wikilinks.mjs        # [[双链]] 索引与解析（插件和构建期共用）
+├── scripts/
+│   ├── art-plum.js          # 梅枝背景（canvas，无依赖）
+│   ├── note-graph.js        # 知识图谱的力导向图（无依赖）
+│   └── mermaid.js           # 笔记里的 Mermaid，按需加载
+├── plugins/
+│   ├── remark-obsidian.mjs  # Obsidian 语法适配（双链 + callout）
+│   └── remark-mermaid.mjs   # ```mermaid → 客户端渲染容器
 ├── pages/
 │   ├── index.astro          # 首页
 │   ├── about.astro          # 关于
 │   ├── 404.astro
+│   ├── graph.astro          # 知识图谱
 │   ├── notes/index.astro    # 笔记列表（按年份分组）
-│   ├── notes/[...slug].astro# 笔记详情（含目录）
+│   ├── notes/[...slug].astro# 笔记详情（含目录、反向链接）
 │   ├── tags/index.astro     # 全部标签
 │   └── tags/[...tag].astro  # 单个标签
 └── styles/global.css
+
+public/images/obsidian/      # 同步时从 Obsidian 复制过来的图片
+scripts/sync-obsidian.mjs    # Obsidian → 博客同步脚本
 ```
 
 ## 版式
@@ -163,6 +265,7 @@ src/
 | `.bar` | 页头、页脚 | 铺满整个浏览器宽度，只留左右 `--gutter` 的内边距 |
 | `.shell` | 目录 + 正文的容器 | 默认单列；有目录时加 `.shell-with-toc`，见下面的三档断点 |
 | `.wrap` | `main` 正文列 | 限制在 `--maxw`（46rem），**不随浏览器拉宽** |
+| `.wrap-wide` | 知识图谱页的正文列 | 放宽到 60rem，给力导向图更多空间 |
 
 ### 左侧栏是「当前页面的目录」，不是全站导航
 

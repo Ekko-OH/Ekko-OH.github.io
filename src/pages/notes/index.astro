@@ -1,45 +1,99 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import NoteCard from '../../components/NoteCard.astro';
-import { collectTags, getNotes, groupByYear, tagHref } from '../../lib/notes';
+import { getNotes, type NoteRole } from '../../lib/notes';
 
 const notes = await getNotes();
-const groups = groupByYear(notes);
-const tags = collectTags(notes);
+const humanNotes = notes.filter((note) => note.data.source !== 'agent');
+const agentNotes = notes
+	.filter((note) => note.data.source === 'agent')
+	.sort((a, b) => (a.data.order ?? 999) - (b.data.order ?? 999));
+
+// 博客的主结构只有三层：总览是地图，专题是深入，模型是实例。
+// 标签只用于检索，不放在这里当主导航。
+const sections: { role: NoteRole; title: string; hint: string }[] = [
+	{
+		role: 'overview',
+		title: '总览',
+		hint: '先读这里。一篇总览就是一张地图：给出主线、阅读顺序，以及每块内容为什么存在。',
+	},
+	{
+		role: 'topic',
+		title: '专题',
+		hint: '一个概念的深入。每篇只回答一个问题，彼此用双链连接。',
+	},
+	{
+		role: 'model',
+		title: '模型',
+		hint: '具体架构的实例和比较。同一套积木，换一种搭法会得到什么。',
+	},
+];
+
+const groups = sections.map((section) => ({
+	...section,
+	notes: humanNotes
+		.filter((note) => note.data.role === section.role)
+		.sort((a, b) => (a.data.order ?? 999) - (b.data.order ?? 999)),
+}));
 ---
 
-<BaseLayout title="笔记" description="全部学习笔记">
+<BaseLayout title="笔记" description="按总览、专题、模型组织的个人笔记">
 	<h1 class="page-title">笔记</h1>
+	<p class="page-lede">
+		这个博客按「总览 → 专题 → 模型」组织：总览是一张地图，专题是一个概念的深入，模型是具体架构的实例。标签只用来检索，不参与主结构。下面的「Agent 整理」是 Agent 收集/整理的材料，和个人笔记分开。
+	</p>
+
+	<div class="page-actions">
+		<a href="/graph/">打开知识图谱 →</a>
+		<a href="/tags/">按标签浏览 →</a>
+		{agentNotes.length > 0 && <a href="#agent">Agent 整理 →</a>}
+	</div>
 
 	{
-		tags.length > 0 && (
-			<ul class="tag-list" style="margin-bottom: 2rem;">
-				{tags.map(({ tag, count }) => (
-					<li>
-						<a class="tag" href={tagHref(tag)}>
-							{tag}
-							<span class="tag-count">{count}</span>
-						</a>
-					</li>
-				))}
-			</ul>
-		)
-	}
-
-	{
-		groups.length === 0 ? (
+		humanNotes.length === 0 && agentNotes.length === 0 ? (
 			<p class="empty">还没有笔记。</p>
 		) : (
-			groups.map(({ year, items }) => (
-				<section>
-					<h2 class="year-heading">{year}</h2>
-					<ul class="note-list">
-						{items.map((note) => (
-							<NoteCard note={note} />
-						))}
-					</ul>
-				</section>
-			))
+			<>
+				{groups.map((section) => (
+					<section class="note-group">
+						<div class="section-head">
+							<h2>{section.title}</h2>
+							<span class="note-group-count">{section.notes.length} 篇</span>
+						</div>
+						<p class="note-group-hint">{section.hint}</p>
+						{section.notes.length > 0 ? (
+							<ul class="note-list">
+								{section.notes.map((note) => (
+									<NoteCard note={note} />
+								))}
+							</ul>
+						) : (
+							<p class="note-group-empty">
+								{section.role === 'overview'
+									? '还没有总览。'
+									: '还没有。去 Obsidian 写一篇，加 publish: true 后同步过来。'}
+							</p>
+						)}
+					</section>
+				))}
+
+				{agentNotes.length > 0 && (
+					<section class="note-group note-group-agent" id="agent">
+						<div class="section-head">
+							<h2>Agent 整理</h2>
+							<span class="note-group-count">{agentNotes.length} 篇</span>
+						</div>
+						<p class="note-group-hint">
+							以下内容由 Agent 收集/整理，作为参考资料保留；不是我的个人笔记，也不计入上面的总览 / 专题 / 模型。
+						</p>
+						<ul class="note-list note-list-agent">
+							{agentNotes.map((note) => (
+								<NoteCard note={note} showTags={false} />
+							))}
+						</ul>
+					</section>
+				)}
+			</>
 		)
 	}
 </BaseLayout>

@@ -10,6 +10,10 @@ import { z } from 'astro/zod';
  * 中文文件名也可以：数学归纳法.md → /notes/数学归纳法/
  *
  * 如果想让文件名和 URL 不一致，在 frontmatter 里写 slug: 自定义地址
+ *
+ * role 决定这篇笔记在「技术书」里的层级，只影响展示（角色徽标 / 图谱配色）：
+ *   overview = 总览，topic = 专题，model = 具体模型
+ * aliases 是 Obsidian 风格的别名，[[别名]] 也能链过来。
  */
 const notes = defineCollection({
 	loader: glob({ pattern: '**/*.md', base: './src/content/notes' }),
@@ -22,6 +26,14 @@ const notes = defineCollection({
 		/** draft: true 的笔记只在本地 dev 可见，不会出现在线上构建里 */
 		draft: z.boolean().default(false),
 		slug: z.string().optional(),
+		/** 内容来源：human = 自己写，agent = Agent 整理 */
+		source: z.enum(['human', 'agent']).default('human'),
+		/** 在整本书里的位置：总览 / 专题 / 模型 */
+		role: z.enum(['overview', 'topic', 'model']).default('topic'),
+		/** 同一组里的阅读顺序；不写就按日期倒序 */
+		order: z.number().optional(),
+		/** [[别名]] 也能解析到这篇笔记 */
+		aliases: z.array(z.string()).default([]),
 	}),
 });
 

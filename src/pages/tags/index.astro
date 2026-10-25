@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { collectTags, getNotes, tagHref } from '../../lib/notes';
+import { collectTags, getHumanNotes, tagHref } from '../../lib/notes';
 
-const notes = await getNotes();
+const notes = await getHumanNotes();
 const tags = collectTags(notes);
 ---
 
