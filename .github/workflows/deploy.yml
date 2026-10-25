@@ -22,10 +22,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install, build, and upload site
-        uses: withastro/action@v6
+      # 这里不用 withastro/action：它会缓存 node_modules / .astro，
+      # 上一次构建留下的渲染结果会被继续用，改动明明推上去了线上却没变
+      # （公式那次就这样卡在旧版 KaTeX 的产物里）。
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: 24
+          # 只缓存 npm 的下载缓存，不缓存 node_modules
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: |
+          # Astro 把渲染好的 HTML 存在 .astro / node_modules/.astro 里，
+          # 带旧缓存构建会直接复用它，所以每次发布前先清干净
+          rm -rf .astro node_modules/.astro
+          npm run build
+
+      - name: Upload
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
 
   deploy:
     needs: build
