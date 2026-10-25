@@ -5,6 +5,7 @@ import '../styles/global.css';
 import { Icon } from 'astro-icon/components';
 import Sidebar from '../components/Sidebar.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import Signature from '../components/Signature.astro';
 import { SITE, NAV } from '../site.config';
 
 interface Props {
@@ -102,9 +103,7 @@ const isActive = (href: string) =>
 
 		<header class="site-header">
 			<div class="bar header-inner">
-				<a class="signature" href="/" aria-label={`${SITE.title} 首页`} title={SITE.title}>
-					{SITE.title}
-				</a>
+				<Signature />
 				<div class="header-actions">
 					<nav>
 						{
