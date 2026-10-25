@@ -478,6 +478,29 @@ Inter 只覆盖拉丁字符，中文会继续往 `--font-sans` 后面的 PingFan
 `remark-math` 把公式解析成节点、`rehype-katex` 渲染、`katex` 本体与样式；
 样式在 `BaseLayout.astro` 里 `import 'katex/dist/katex.min.css'` 引入。
 
+### 只许有一个 katex 版本
+
+`package.json` 里那条 `overrides: { "katex": "$katex" }` 不是多余的配置，删了公式会坏。
+
+`rehype-katex@7` 自己声明的是 `katex@^0.16`，和根目录的 `katex@0.18` 不兼容同一个大版本，
+npm 会因此装**两份**：渲染用嵌套的 0.16，而 `import 'katex/dist/katex.min.css'` 取的是根目录 0.18。
+0.18 把内部 class 加了 `katex-` 前缀（`katex-base` / `katex-strut` / `katex-sizing`），
+0.16 输出的是 `base` / `strut` / `sizing`——HTML 和 CSS 的名字对不上，尺寸类规则全部落空，
+表现就是**下标不下沉、和正文一样大**：
+
+```text
+X = (x1, x2, ..., xT)      ← 坏掉时，x_1 被渲染成和正文同号的 x1
+Pθ(x1, x2, ..., xT)        ← P_\theta 也一样，θ 没缩成下标
+```
+
+`overrides` 把两份合成 0.18 后，`npm ls katex` 只剩一条 `deduped`，公式恢复正常。
+如果哪天这里报了 `invalid: katex@...`，说明 override 被删或被 npm 忽略了，照着补回去即可。
+
+改完依赖后还要清 **两个** 缓存目录：`.astro/` 和 `node_modules/.astro/`。
+Astro 把编译好的 HTML 存进 `data-store.json`，公式在构建期就已经渲染成字符串了；
+只清 `.astro/` 的话，`node_modules/.astro/` 里那份旧渲染结果还会被继续用，
+症状是「明明升级了依赖，页面却一点没变」。
+
 `astro.config.mjs` 里有两个刻意的选项：
 
 | 选项 | 为什么 |
