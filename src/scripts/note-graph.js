@@ -584,6 +584,10 @@ export function initNoteGraph() {
 	const hideAgent = document.getElementById('graph-hide-agent');
 	const stats = document.querySelector('[data-graph-stats]');
 
+	function agentHidden() {
+		return hideAgent?.getAttribute('aria-pressed') === 'true';
+	}
+
 	function updateStats() {
 		if (!stats) return;
 		const visibleNodes = nodes.filter((node) => !node.el.classList.contains('is-hidden')).length;
@@ -592,7 +596,7 @@ export function initNoteGraph() {
 	}
 
 	function applyAgentFilter() {
-		const hide = Boolean(hideAgent?.checked);
+		const hide = agentHidden();
 		for (const node of nodes) {
 			node.el.classList.toggle('is-hidden', hide && node.source === 'agent');
 		}
@@ -611,7 +615,10 @@ export function initNoteGraph() {
 		updateStats();
 	}
 
-	hideAgent?.addEventListener('change', applyAgentFilter);
+	hideAgent?.addEventListener('click', () => {
+		hideAgent.setAttribute('aria-pressed', String(!agentHidden()));
+		applyAgentFilter();
+	});
 	applyAgentFilter();
 
 	// ---------- 启动 ----------

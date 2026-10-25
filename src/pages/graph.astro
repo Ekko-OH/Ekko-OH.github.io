@@ -16,11 +16,6 @@ const description = `把 ${graph.nodes.length} 篇文章按双向链接连起来
 <BaseLayout title="知识图谱" description={description} wide>
 	<header class="graph-header">
 		<h1 class="page-title">知识图谱</h1>
-		<p class="page-subtitle">{description}</p>
-		<p class="graph-hint">
-			<Icon name="lucide:mouse-pointer-2" aria-hidden="true" />
-			悬停看邻居，点击选中并列出所有相连节点，双击或面板按钮打开笔记；拖动节点整理布局，滚轮缩放，工具栏「节点」滑杆可调大小。每条线来自正文里的双链，节点大小按连接数；勾选「只看我的笔记」可隐藏 Agent。
-		</p>
 	</header>
 
 	<div class="graph-toolbar">
@@ -36,13 +31,19 @@ const description = `把 ${graph.nodes.length} 篇文章按双向链接连起来
 			<span><i class="graph-dot graph-dot-agent"></i>Agent</span>
 		</div>
 
-		<label class="graph-toggle">
-			<input id="graph-hide-agent" type="checkbox" />
-			只看我的笔记
-		</label>
+		<button
+			type="button"
+			class="graph-icon-toggle"
+			id="graph-hide-agent"
+			aria-pressed="false"
+			aria-label="只看我的笔记"
+			title="只看我的笔记"
+		>
+			<Icon name="lucide:user" aria-hidden="true" />
+		</button>
 
-		<label class="graph-size">
-			<span>节点</span>
+		<label class="graph-size" title="节点大小">
+			<Icon name="lucide:circle" size={13} aria-hidden="true" />
 			<input id="graph-size" type="range" min="0.35" max="1.35" step="0.05" value="0.85" aria-label="节点大小" />
 		</label>
 
@@ -58,9 +59,7 @@ const description = `把 ${graph.nodes.length} 篇文章按双向链接连起来
 					<button type="button" data-graph-action="out" aria-label="缩小" title="缩小">−</button>
 					<button type="button" data-graph-action="reset" aria-label="重置视图" title="重置视图">↺</button>
 				</div>
-				<div class="graph-status" data-graph-status aria-live="polite">
-					把鼠标移到节点上，看看它和谁相连。
-				</div>
+				<div class="graph-status" data-graph-status aria-live="polite"></div>
 				<div class="graph-selection" data-graph-selection aria-label="相连节点" hidden>
 					<div class="graph-selection-head">
 						<strong data-graph-selection-title></strong>
