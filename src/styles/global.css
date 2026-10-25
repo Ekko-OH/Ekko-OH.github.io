@@ -72,7 +72,10 @@ body {
 
 .art-plum {
 	position: fixed;
-	inset: 0;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
 	z-index: -1;
 	pointer-events: none;
 	/* 正中擦成透明、越靠边越实：枝条只在四周出现，正文区域保持干净 */
