@@ -102,7 +102,9 @@ const isActive = (href: string) =>
 
 		<header class="site-header">
 			<div class="bar header-inner">
-				<a class="brand" href="/">{SITE.title}</a>
+				<a class="signature" href="/" aria-label={`${SITE.title} 首页`} title={SITE.title}>
+					{SITE.title}
+				</a>
 				<div class="header-actions">
 					<nav>
 						{
