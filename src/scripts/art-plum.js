@@ -1,26 +1,16 @@
 /**
  * 梅枝背景。
  *
- * 照 antfu.me 的 ArtPlum（1.8KB，Vue 组件）用原生 JS 重写，无依赖。
- * 算法：从视口四条边各起一条，向内生长。每段长度 0~6px、方向抖动 ±15°，
- * 然后按概率分成两枝；每帧只推进待办队列里随机的一部分，其余推到下一帧，
- * 于是能看到枝条一帧一帧"抽"出来。队列空了就彻底停下，不空转。
+ * 首次访问：同步生成完整的一幅枝条，立刻烘焙成白色透明蒙版并写入 localStorage。
+ * 之后换页、切标签页：只把这张缓存图按当前尺寸重绘，再用当前主题色着色，
+ * 不再随机、也不再跑生成。只有缓存损坏或隐私模式下，才退回逐帧生长动画。
  *
- * 几个容易写错的细节：
+ * 生成算法：从视口四条边各起一条，向内生长。每段长度 0~6px、方向抖动 ±15°，
+ * 然后按概率分成两枝；分叉概率用一棵子树共享的段数计数，群体规模才能稳定。
+ * 四个起点各有各的计数器。
  *
- * 1. 分叉概率用的那个「段数」不是每条路径各自的深度，而是**沿着一整棵子树共享**的
- *    计数器。前 30 段按 80% 分叉，之后一律 50% —— 之后每段平均只生出一个子枝
- *    （2 × 0.5 = 1），群体规模稳定、枝条跑到画布外自然消亡。若按「每层深度」判，
- *    前 30 层 80% 分叉会让数量涨到 1.6^30，直接卡死。
- * 2. 四个起点**各有各的计数器**（参考站里是默认参数 `a = { value: 0 }`，每个种子新建
- *    一次），也就是 4 × 30 段的高概率预算。全树共用一个的话会明显比参考站稀疏。
- * 3. 这是个「临界分支过程」，**有时会提前灭绝**——枝条全跑出画布，段数远没到上限
- *    就结束了，看起来就偏稀。兜底做法是**再补几个起点接着长**（见 settle）。
- *    注意千万别用「清空重画」——那会让用户看到长到一半突然重来。
- *
- * 关于 prefers-reduced-motion：**这里故意不遵守**。站主要求背景始终播放生长动画，
- * 即使系统开了「减弱动态效果」。这是有意为之，不是漏写，别当成 bug 修回去
- * （想恢复尊重的话，就在 start() 里判断该系统偏好、然后一次画完不排 rAF）。
+ * 注意：缓存的是成品蒙版图像，不是随机种子。换页不会再“用同一个种子重新生成”，
+ * 而是直接 drawImage 这张已经画好的图。
  */
 
 const STROKE_WIDTH = 1;
@@ -30,6 +20,12 @@ const YOUNG_SEGMENTS = 30; // 每棵子树前多少段享受更高的分叉概�
 const CHANCE_YOUNG = 0.8;
 const CHANCE_OLD = 0.5;
 const EDGE_BLEED = 100; // 出界超过这么多就停止生长
+
+/** 生成时坐标保留一位小数，够用且让后面烘焙蒙版轻一点。 */
+const roundCoord = (value) => Math.round(value * 10) / 10;
+
+const CACHE_KEY = 'plum-art-image-v1';
+const CACHE_VERSION = 1;
 
 /**
  * 生长速度由两个数决定：
@@ -63,7 +59,7 @@ const MAX_TOP_UPS = 6;
 /**
  * @param {HTMLCanvasElement} canvas
  */
-export function createPlumArt(canvas) {
+export function createPlumArt(canvas, { onComplete } = {}) {
 	const ctx = canvas.getContext('2d');
 
 	let width = 0;
@@ -76,11 +72,16 @@ export function createPlumArt(canvas) {
 	let topUps = 0;
 	/** 当前这轮的颜色，供重画/补种时复用 */
 	let stroke = '';
+	/** 这一轮画过的所有线段，用来存成固定背景 */
+	let segments = [];
+	let completed = false;
 
 	function resize() {
 		const dpr = window.devicePixelRatio || 1;
-		width = canvas.clientWidth;
-		height = canvas.clientHeight;
+		// DevTools 停靠/移动窗口的瞬间 clientWidth 可能短暂为 0，
+		// 这里兜一下，避免 drawImage 收到 0 宽高报错。
+		width = Math.max(1, canvas.clientWidth);
+		height = Math.max(1, canvas.clientHeight);
 		canvas.width = Math.round(width * dpr);
 		canvas.height = Math.round(height * dpr);
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -90,6 +91,8 @@ export function createPlumArt(canvas) {
 		const len = Math.random() * SEGMENT_MAX;
 		const nx = x + len * Math.cos(angle);
 		const ny = y + len * Math.sin(angle);
+
+		segments.push([roundCoord(x), roundCoord(y), roundCoord(nx), roundCoord(ny)]);
 
 		ctx.beginPath();
 		ctx.moveTo(x, y);
@@ -127,8 +130,22 @@ export function createPlumArt(canvas) {
 		queue.push(...edges.map((edge) => seedAt(edge)));
 	}
 
+	function finish() {
+		if (completed) return;
+		completed = true;
+		if (segments.length === 0) return;
+		try {
+			onComplete?.({ width, height, segments: segments.slice() });
+		} catch (error) {
+			console.error('plum finish callback failed', error);
+		}
+	}
+
 	function settle() {
-		if (drawn >= MIN_SEGMENTS || topUps >= MAX_TOP_UPS) return;
+		if (drawn >= MIN_SEGMENTS || topUps >= MAX_TOP_UPS) {
+			finish();
+			return;
+		}
 		topUps += 1;
 		topUp();
 		lastFrame = performance.now();
@@ -172,6 +189,8 @@ export function createPlumArt(canvas) {
 		ctx.lineCap = 'round';
 		ctx.strokeStyle = color;
 		stroke = color;
+		segments = [];
+		completed = false;
 		drawn = 0;
 		topUps = 0;
 
@@ -183,40 +202,238 @@ export function createPlumArt(canvas) {
 		raf = requestAnimationFrame(tick);
 	}
 
+	/**
+	 * 同步一次性生成完整枝条。第一页加载时用它，生成完立刻缓存，
+	 * 这样即使马上切页也已经有一张固定画面可复用。
+	 */
+	function generate(color) {
+		stop();
+		resize();
+		ctx.clearRect(0, 0, width, height);
+		ctx.lineWidth = STROKE_WIDTH;
+		ctx.lineCap = 'round';
+		ctx.strokeStyle = color;
+		stroke = color;
+		segments = [];
+		completed = false;
+		drawn = 0;
+		topUps = 0;
+
+		const edges = width < 500 ? [0, 1] : [0, 1, 2, 3];
+		queue = edges.map((edge) => seedAt(edge));
+
+		let index = 0;
+		while (index < queue.length && drawn < MAX_SEGMENTS) {
+			const task = queue[index];
+			index += 1;
+			task();
+
+			if (index >= queue.length && queue.length > 0 && drawn < MIN_SEGMENTS && topUps < MAX_TOP_UPS) {
+				topUps += 1;
+				topUp();
+			}
+		}
+
+		finish();
+	}
+
+	/**
+	 * 直接绘制已经生成好的画面（白色枝条蒙版），不做生长动画。
+	 * 用当前主题色重新着色，所以明暗切换也还是同一幅枝条。
+	 */
+	function drawMask(source, color) {
+		stop();
+		queue = [];
+		if (canvas.clientWidth < 1 || canvas.clientHeight < 1) return;
+		resize();
+		ctx.clearRect(0, 0, width, height);
+
+		// 按 cover 铺：保持缓存画面比例，宁可裁掉一点，也不在 DevTools 改变视口时被拉扁。
+		const sourceWidth = source.naturalWidth || source.width || width;
+		const sourceHeight = source.naturalHeight || source.height || height;
+		const cover = Math.max(width / sourceWidth, height / sourceHeight);
+		const drawWidth = sourceWidth * cover;
+		const drawHeight = sourceHeight * cover;
+		ctx.drawImage(
+			source,
+			(width - drawWidth) / 2,
+			(height - drawHeight) / 2,
+			drawWidth,
+			drawHeight,
+		);
+		ctx.globalCompositeOperation = 'source-in';
+		ctx.fillStyle = color;
+		ctx.fillRect(0, 0, width, height);
+		ctx.globalCompositeOperation = 'source-over';
+		stroke = color;
+		completed = true;
+	}
+
 	return {
 		/** 清空重画。color 传当前主题对应的描边色 */
 		draw: (color) => start(color),
+		generate,
+		drawMask,
 		stop,
+		isRunning: () => Boolean(raf) || queue.length > 0,
+		setColor: (color) => {
+			ctx.strokeStyle = color;
+			stroke = color;
+		},
 	};
 }
 
+/** 读取第一次生成时烘焙下来的成品图。 */
+function readPlumCache() {
+	try {
+		const raw = localStorage.getItem(CACHE_KEY);
+		if (!raw) return null;
+		const data = JSON.parse(raw);
+		if (
+			data?.version !== CACHE_VERSION ||
+			!Number.isFinite(data.width) ||
+			!Number.isFinite(data.height) ||
+			data.width <= 0 ||
+			data.height <= 0 ||
+			typeof data.image !== 'string' ||
+			!data.image.startsWith('data:image/')
+		) {
+			return null;
+		}
+		return data;
+	} catch {
+		return null;
+	}
+}
+
+function writePlumCache(data) {
+	try {
+		localStorage.setItem(
+			CACHE_KEY,
+			JSON.stringify({
+				version: CACHE_VERSION,
+				width: Math.round(data.width * 10) / 10,
+				height: Math.round(data.height * 10) / 10,
+				image: data.image,
+			}),
+		);
+	} catch (error) {
+		console.error('plum cache write failed', error);
+	}
+}
+
+/** 把第一次生长出来的线段烘焙成一张白色透明蒙版，之后只复用这张图。 */
+function createMaskImage(segments, sourceWidth, sourceHeight) {
+	const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+	// 限制最长边，避免 4K/8K 屏幕把 localStorage 撑爆
+	const scale = Math.min(dpr, 2560 / Math.max(sourceWidth, sourceHeight));
+	const mask = document.createElement('canvas');
+	mask.width = Math.max(1, Math.round(sourceWidth * scale));
+	mask.height = Math.max(1, Math.round(sourceHeight * scale));
+
+	const maskCtx = mask.getContext('2d');
+	if (!maskCtx) return null;
+
+	maskCtx.setTransform(scale, 0, 0, scale, 0, 0);
+	maskCtx.lineWidth = STROKE_WIDTH;
+	maskCtx.lineCap = 'round';
+	maskCtx.strokeStyle = '#fff';
+
+	for (const [x1, y1, x2, y2] of segments) {
+		maskCtx.beginPath();
+		maskCtx.moveTo(x1, y1);
+		maskCtx.lineTo(x2, y2);
+		maskCtx.stroke();
+	}
+
+	return mask;
+}
+
 /**
- * 挂到页面上的 canvas：初次绘制、跟随主题改色、窗口变化时重画。
+ * 挂到页面上的 canvas：优先显示缓存下来的成品画面；没有缓存时生成一次，
+ * 画完把成品烘焙成图存起来。之后换页、切标签页都直接画这张图，不再跑生成。
  */
 export function initPlumArt() {
 	const canvas = document.querySelector('[data-art-plum]');
 	if (!canvas) return;
 
-	const art = createPlumArt(canvas);
+	const cached = readPlumCache();
+	/** @type {{ source: CanvasImageSource } | null} */
+	let mask = null;
+	let waitingForCache = Boolean(cached);
 
-	const draw = () => {
-		// 颜色从 CSS 变量取，明暗两套各自定义（参考站是写死一个灰，暗色下偏淡）
-		const color = getComputedStyle(canvas).getPropertyValue('--art-stroke').trim() || '#88888825';
+	const currentColor = () =>
+		getComputedStyle(canvas).getPropertyValue('--art-stroke').trim() || '#88888825';
+
+	const art = createPlumArt(canvas, {
+		onComplete: ({ width, height, segments }) => {
+			const maskCanvas = createMaskImage(segments, width, height);
+			if (!maskCanvas) return;
+
+			const webp = maskCanvas.toDataURL('image/webp', 0.92);
+			const image = webp.startsWith('data:image/webp') ? webp : maskCanvas.toDataURL('image/png');
+
+			mask = { source: maskCanvas };
+			writePlumCache({ width, height, image });
+			paint();
+		},
+	});
+
+	function paint() {
+		if (waitingForCache) return;
+		const color = currentColor();
+
+		if (mask) {
+			art.drawMask(mask.source, color);
+			return;
+		}
+
+		// 第一次生长过程中切换主题/尺寸，只换颜色，不要重新随机
+		if (art.isRunning()) {
+			art.setColor(color);
+			return;
+		}
+
 		art.draw(color);
-	};
+	}
 
-	draw();
+	if (cached) {
+		const image = new Image();
+		image.onload = () => {
+			waitingForCache = false;
+			mask = { source: image };
+			paint();
+		};
+		image.onerror = () => {
+			waitingForCache = false;
+			mask = null;
+			try {
+				// 缓存坏了就重新同步生成一张，不要退回逐帧长出来
+				art.generate(currentColor());
+			} catch (error) {
+				console.error('plum regenerate failed', error);
+				paint();
+			}
+		};
+		image.src = cached.image;
+	} else {
+		waitingForCache = false;
+		try {
+			// 同步生成完整背景并立刻写入缓存；不依赖动画跑完
+			art.generate(currentColor());
+		} catch (error) {
+			console.error('plum generate failed', error);
+			paint();
+		}
+	}
 
-	// 切换深浅色时重画（形状会重新随机，可以接受）
-	new MutationObserver(draw).observe(document.documentElement, {
+	// 切换深浅色：同一幅画面，只换描边色
+	new MutationObserver(paint).observe(document.documentElement, {
 		attributes: true,
 		attributeFilter: ['data-theme'],
 	});
 
-	// 窗口尺寸变化时重画，防抖
-	let resizeTimer = 0;
-	window.addEventListener('resize', () => {
-		clearTimeout(resizeTimer);
-		resizeTimer = window.setTimeout(draw, 300);
-	});
+	// 故意不在 resize 时重绘：打开 DevTools / 拖动窗口会触发大量 resize，
+	// 重绘会让背景闪一下，也会把画面按新宽高重新拉伸。canvas 本身是 100% 尺寸，
+	// 交给 CSS 缩放同一张图即可；主题切换仍然会按当前尺寸重绘一次。
 }
