@@ -1,14 +1,17 @@
 ---
-title: Transformer 块
-description: 把 Attention、FNN、残差和 LayerNorm 装成一个可以重复 N 次的块：Pre-LN 与 Post-LN 的差别，12d² 的参数从哪来，以及「堆深」到底靠什么成立。
+title: "Transformer 块"
+uuid: "01a177d1-e128-72e1-a3cf-075434d1d19a"
+description: "把 Attention、FNN、残差和 LayerNorm 装成一个可以重复 N 次的块：Pre-LN 与 Post-LN 的差别，12d² 的参数从哪来，以及「堆深」到底靠什么成立。"
 date: 2026-10-24
+updated: 2026-10-26
 role: topic
 source: agent
 order: 5
-tags: [Transformer, 架构, 神经网络]
-aliases: [Transformer Block, Transformer, 残差连接]
-uuid: "01a177d1-e128-72e1-a3cf-075434d1d19a"
+tags: ["Transformer", "架构", "神经网络"]
+aliases: ["Transformer Block", "Transformer", "残差连接"]
 ---
+
+<!-- synced:obsidian source="3 永久/Transformer 块.md" -->
 
 > [!info] 在主线的哪一步
 > 这是主线「第 4 步：把部件装进可堆叠的块」的展开。到这一步，词向量、注意力、前馈网络、位置编码都已经就位；剩下的问题是怎么把它们稳定地叠几十层。

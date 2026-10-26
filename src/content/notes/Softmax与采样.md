@@ -1,14 +1,17 @@
 ---
-title: Softmax 与采样
-description: logits 怎么变成词表上的概率，温度、top-k、top-p 分别改了什么，以及为什么模型「输出一个词」其实是一次采样。
+title: "Softmax 与采样"
+uuid: "01a177d1-e127-7a0c-8023-be9ceb37c64d"
+description: "logits 怎么变成词表上的概率，温度、top-k、top-p 分别改了什么，以及为什么模型「输出一个词」其实是一次采样。"
 date: 2026-10-24
+updated: 2026-10-26
 role: topic
 source: agent
 order: 6
-tags: [语言模型, 概率, 采样]
-aliases: [Softmax, 采样, Temperature, Top-p]
-uuid: "01a177d1-e127-7a0c-8023-be9ceb37c64d"
+tags: ["语言模型", "概率", "采样"]
+aliases: ["Softmax", "采样", "Temperature", "Top-p"]
 ---
+
+<!-- synced:obsidian source="3 永久/Softmax 与采样.md" -->
 
 > [!info] 在主线的哪一步
 > 这是主线「输出端」的展开。主线只需要知道：模型最后输出的是一整个词表上的概率分布，不是一个词。这一篇解释分布怎么来、怎么从里面选，以及那些「temperature」「top-p」参数到底在动哪里。
