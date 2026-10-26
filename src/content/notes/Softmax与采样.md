@@ -3,7 +3,6 @@ title: "Softmax 与采样"
 uuid: "01a177d1-e127-7a0c-8023-be9ceb37c64d"
 description: "logits 怎么变成词表上的概率，温度、top-k、top-p 分别改了什么，以及为什么模型「输出一个词」其实是一次采样。"
 date: 2026-10-24
-updated: 2026-10-26
 role: topic
 source: agent
 order: 6

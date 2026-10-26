@@ -3,7 +3,6 @@ title: "Transformer 块"
 uuid: "01a177d1-e128-72e1-a3cf-075434d1d19a"
 description: "把 Attention、FNN、残差和 LayerNorm 装成一个可以重复 N 次的块：Pre-LN 与 Post-LN 的差别，12d² 的参数从哪来，以及「堆深」到底靠什么成立。"
 date: 2026-10-24
-updated: 2026-10-26
 role: topic
 source: agent
 order: 5

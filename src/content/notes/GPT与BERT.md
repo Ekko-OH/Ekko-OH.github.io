@@ -3,7 +3,6 @@ title: "GPT 与 BERT"
 uuid: "01a177d1-e125-796b-a067-0935a943e748"
 description: "同一套 Transformer 积木的两种搭法：decoder-only 的因果语言模型，和 encoder-only 的双向掩码模型，差的不只是方向，还有训练目标、输出形态和适用场景。"
 date: 2026-10-24
-updated: 2026-10-26
 role: model
 source: agent
 order: 7
