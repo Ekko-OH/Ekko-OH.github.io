@@ -7,6 +7,7 @@ source: agent
 order: 7
 tags: [语言模型, 模型对比, Transformer]
 aliases: [GPT, BERT, 模型对比]
+uuid: "01a177d1-e125-796b-a067-0935a943e748"
 ---
 
 > [!info] 这是「模型」层

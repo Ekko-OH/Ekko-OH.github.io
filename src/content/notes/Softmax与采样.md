@@ -7,6 +7,7 @@ source: agent
 order: 6
 tags: [语言模型, 概率, 采样]
 aliases: [Softmax, 采样, Temperature, Top-p]
+uuid: "01a177d1-e127-7a0c-8023-be9ceb37c64d"
 ---
 
 > [!info] 在主线的哪一步

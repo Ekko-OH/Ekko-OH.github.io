@@ -309,8 +309,10 @@ async function transformBody(body, noteDir, noteKey, assetIndex, assetCache, sta
 	return output;
 }
 
-function outputFrontmatter({ title, description, date, updated, tags, role, aliases, slug, order, source }) {
+function outputFrontmatter({ title, description, date, updated, tags, role, aliases, slug, order, source, uuid }) {
 	const lines = ['---', `title: ${yamlString(title)}`];
+	// uuid 是这篇笔记的长期身份证：只在发布时生成一次，之后永不改写
+	if (uuid) lines.push(`uuid: ${yamlString(uuid)}`);
 
 	if (description) lines.push(`description: ${yamlString(description)}`);
 	lines.push(`date: ${date}`);
@@ -353,6 +355,13 @@ async function main() {
 		const relative = relativeToVault(file);
 		const source = await readFile(file, 'utf8');
 		const { data, body } = parseFrontmatter(source);
+
+		// 页面类笔记（目前是首页 About）由 sync-about.mjs 单独处理，
+		// 不要把它们放进笔记集和 Notes 时间线。
+		if (String(data.page || '').toLowerCase() === 'about') {
+			stats.skipped += 1;
+			continue;
+		}
 
 		if (!isTruthy(data.publish)) {
 			stats.skipped += 1;
@@ -432,6 +441,7 @@ async function main() {
 			slug: data.slug ? String(data.slug) : '',
 			order,
 			source: isAgentSource ? 'agent' : 'human',
+			uuid: data.uuid ? String(data.uuid) : '',
 		});
 
 		const marker = `${MARKER} source="${relative}" -->`;

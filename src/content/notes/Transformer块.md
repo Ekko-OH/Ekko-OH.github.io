@@ -7,6 +7,7 @@ source: agent
 order: 5
 tags: [Transformer, 架构, 神经网络]
 aliases: [Transformer Block, Transformer, 残差连接]
+uuid: "01a177d1-e128-72e1-a3cf-075434d1d19a"
 ---
 
 > [!info] 在主线的哪一步

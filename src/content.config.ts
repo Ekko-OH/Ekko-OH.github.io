@@ -26,6 +26,8 @@ const notes = defineCollection({
 		/** draft: true 的笔记只在本地 dev 可见，不会出现在线上构建里 */
 		draft: z.boolean().default(false),
 		slug: z.string().optional(),
+		/** 长期不变的唯一标识（UUIDv7），发布时生成一次，改标题/改网址都不变 */
+		uuid: z.string().optional(),
 		/** 内容来源：human = 自己写，agent = Agent 整理 */
 		source: z.enum(['human', 'agent']).default('human'),
 		/** 在整本书里的位置：总览 / 专题 / 模型 */
@@ -37,4 +39,13 @@ const notes = defineCollection({
 	}),
 });
 
-export const collections = { notes };
+/** 独立页面（目前是首页 About），内容由 Obsidian 的 关于.md 同步而来。 */
+const pages = defineCollection({
+	loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
+	schema: z.object({
+		title: z.string(),
+		description: z.string().optional(),
+	}),
+});
+
+export const collections = { notes, pages };
