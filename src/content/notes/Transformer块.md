@@ -7,7 +7,7 @@ role: topic
 source: agent
 order: 5
 tags: ["Transformer", "架构", "神经网络"]
-aliases: ["Transformer Block", "Transformer", "残差连接"]
+aliases: ["Transformer Block", "Transformer", "Transformer块", "Transformers", "残差连接"]
 ---
 
 <!-- synced:obsidian source="3 永久/Transformer 块.md" -->
