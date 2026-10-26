@@ -5,6 +5,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeHeadingAnchor from './src/plugins/rehype-heading-anchor.mjs';
+import rehypeWideTable from './src/plugins/rehype-wide-table.mjs';
 import remarkMermaid from './src/plugins/remark-mermaid.mjs';
 import remarkObsidian from './src/plugins/remark-obsidian.mjs';
 
@@ -26,7 +27,11 @@ export default defineConfig({
 			remarkPlugins: [remarkMath, remarkMermaid, remarkObsidian],
 			// rehypeKatex 用宽松模式：公式里出现中文（如 $好 = F(今天, 天气, 真)$）
 			// KaTeX 默认会报错，strict:false 让它照常渲染而不是炸掉构建。
-			rehypePlugins: [[rehypeKatex, { strict: false, throwOnError: false }], rehypeHeadingAnchor],
+			rehypePlugins: [
+				[rehypeKatex, { strict: false, throwOnError: false }],
+				rehypeWideTable,
+				rehypeHeadingAnchor,
+			],
 		}),
 		shikiConfig: {
 			// 跟随系统深浅色自动切换代码配色

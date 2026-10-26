@@ -929,6 +929,39 @@ main {
 	font-weight: 500;
 }
 
+/* 宽表（列数 ≥ 10，由 src/plugins/rehype-wide-table.mjs 自动加 .wide）。
+   默认表格样式会把每列压到 min-content，中文表头会被拆成一字一行；
+   宽表改用 nowrap + 横向滚动，并向右借一点空白，尽量少滚。 */
+.prose table.wide {
+	/* 正文列只有 46rem，右边其实还有一条空白（侧栏让出来的那一列）。
+	   宽度取三者夹逼：不小于正文列，不超过「视口 - 侧栏/留白」，最多比正文列宽 22rem。
+	   这样宽屏能多吃一点空白，窄屏又不会把页面撑出横向滚动条。 */
+	width: clamp(100%, calc(100vw - 24rem), calc(100% + 22rem));
+	max-width: none;
+	white-space: nowrap;
+	font-size: 0.86rem;
+}
+
+.prose table.wide th,
+.prose table.wide td {
+	padding: 0.4rem 0.6rem;
+	border: 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.prose table.wide thead th {
+	background: var(--bg-subtle);
+	font-weight: 600;
+}
+
+.prose table.wide tbody tr:nth-child(2n) td {
+	background: var(--bg-subtle);
+}
+
+.prose table.wide td:first-child {
+	color: var(--fg-subtle);
+}
+
 /* ---------- 数学公式（KaTeX） ---------- */
 
 /* 公式里的中文要落回正文字体：KaTeX 自己的 KaTeX_Main 没有汉字，
